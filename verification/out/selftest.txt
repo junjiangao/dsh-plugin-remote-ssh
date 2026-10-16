@@ -1,12 +1,12 @@
-✔ rig exposes sane coordinates (198.967466ms)
-✔ sshd log reports the listening port (0.647899ms)
-✔ ssh runs a remote command with BatchMode and exit code 0 (150.597545ms)
-✔ ssh propagates a non-zero remote exit code (160.306966ms)
-✔ ssh honours a working directory and exported environment (164.029992ms)
-✔ scp uploads and downloads byte-identical content (335.311091ms)
-✔ scp -r uploads and downloads a directory tree (332.769487ms)
-✔ rig never touches ~/.ssh (1.011818ms)
-✔ stop removes the temp dir, kills sshd and frees the port (31.455644ms)
+✔ rig exposes sane coordinates (207.334532ms)
+✔ sshd log reports the listening port (0.708602ms)
+✔ ssh runs a remote command with BatchMode and exit code 0 (155.939803ms)
+✔ ssh propagates a non-zero remote exit code (158.842057ms)
+✔ ssh honours a working directory and exported environment (167.997727ms)
+✔ scp uploads and downloads byte-identical content (340.678516ms)
+✔ scp -r uploads and downloads a directory tree (339.265406ms)
+✔ rig never touches ~/.ssh (1.008093ms)
+✔ stop removes the temp dir, kills sshd and frees the port (30.821327ms)
 ℹ tests 9
 ℹ suites 0
 ℹ pass 9
@@ -14,4 +14,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 1433.824498
+ℹ duration_ms 1463.947804

@@ -1,34 +1,33 @@
-# Hermetic unprivileged sshd rig
+# 封闭式非特权 sshd 测试装置
 
-A throwaway OpenSSH server for testing SSH-based code without touching the user's
-`~/.ssh`, without root, and without a fixed port.
+一个用完即弃的 OpenSSH 服务器，用于测试基于 SSH 的代码：不触碰用户的 `~/.ssh`、
+不需要 root，也不占用固定端口。
 
-- `lib.mjs` — `startRig()` / `stopRig()` / `withRig()` helpers (Node builtins only).
-- `start.mjs` — CLI: start a rig, print one JSON line, stay in the foreground.
-- `stop.mjs` — CLI: stop a rig started by `start.mjs`.
-- `selftest.mjs` — proves the rig works: `node --test tests/rig/selftest.mjs`.
+- `lib.mjs` —— `startRig()` / `stopRig()` / `withRig()` 辅助函数（仅使用 Node 内置模块）。
+- `start.mjs` —— CLI：启动一套装置，打印一行 JSON，并保持在前台运行。
+- `stop.mjs` —— CLI：停止由 `start.mjs` 启动的装置。
+- `selftest.mjs` —— 证明装置可用：`node --test tests/rig/selftest.mjs`。
 
-## How it works
+## 工作原理
 
-Each rig gets its own directory from `mkdtemp($TMPDIR/dsh-ssh-rig-XXXXXX)` containing:
+每套装置都会通过 `mkdtemp($TMPDIR/dsh-ssh-rig-XXXXXX)` 获得自己的目录，其中包含：
 
-| file | purpose |
+| 文件 | 用途 |
 | --- | --- |
-| `hostkey`, `hostkey.pub` | sshd host key (`ssh-keygen -t ed25519`) |
-| `clientkey`, `clientkey.pub` | client key; public half is the rig's `authorized_keys` |
-| `authorized_keys` | `AuthorizedKeysFile`, mode 600 |
-| `sshd_config` | private config (see below) |
-| `sshd.log` | sshd log (`-E`), contains `Server listening on 127.0.0.1 port <port>.` |
+| `hostkey`、`hostkey.pub` | sshd 主机密钥（`ssh-keygen -t ed25519`） |
+| `clientkey`、`clientkey.pub` | 客户端密钥；公钥部分即该装置的 `authorized_keys` |
+| `authorized_keys` | `AuthorizedKeysFile`，权限 600 |
+| `sshd_config` | 私有配置（见下文） |
+| `sshd.log` | sshd 日志（`-E`），包含 `Server listening on 127.0.0.1 port <port>.` |
 | `sshd.pid` | `PidFile` |
 
-sshd runs **as the current user** (`id -un`) in the foreground (`sshd -D -f <config> -E <log>`)
-on an ephemeral high port bound to `127.0.0.1`. The config disables PAM, password
-auth, root login and strict modes, and enables `Subsystem sftp internal-sftp` so that
-`scp` (which speaks SFTP by default on OpenSSH ≥ 9) works. The free port is found by
-binding a temporary TCP server to port 0 and closing it; startup retries on a fresh
-port if the address is taken.
+sshd **以当前用户身份**（`id -un`）在前台运行（`sshd -D -f <config> -E <log>`），
+监听绑定到 `127.0.0.1` 的临时高位端口。该配置关闭 PAM、密码认证、root 登录与
+严格模式检查，并启用 `Subsystem sftp internal-sftp`，以便 `scp`（在 OpenSSH ≥ 9 上
+默认使用 SFTP 协议）可以工作。空闲端口通过把临时 TCP 服务器绑定到端口 0 再关闭来
+获取；若地址已被占用，启动时会换一个新端口重试。
 
-## Start / stop from a shell
+## 在 shell 中启动 / 停止
 
 ```sh
 node tests/rig/start.mjs --json-file /tmp/rig.json
@@ -41,11 +40,11 @@ node tests/rig/stop.mjs --json-file /tmp/rig.json
 # {"stopped":true,...,"portStillListening":false,"dirStillExists":false}
 ```
 
-`start.mjs` also accepts `--port <n>` (fixed unprivileged port, no retry), `--dir <path>`
-and `--quiet`. `stop.mjs` also accepts `--pid <sshd-pid> [--dir <dir>] [--port <n>]`, or a
-bare JSON-file path.
+`start.mjs` 还接受 `--port <n>`（固定非特权端口，不重试）、`--dir <path>` 与
+`--quiet`。`stop.mjs` 还接受 `--pid <sshd-pid> [--dir <dir>] [--port <n>]`，或直接给出
+JSON 文件路径。
 
-## From `node:test` / other Node code
+## 在 `node:test` / 其他 Node 代码中使用
 
 ```js
 import { startRig, stopRig, runSsh, runScp } from './tests/rig/lib.mjs';
@@ -59,12 +58,12 @@ try {
 }
 ```
 
-`rig` exposes `{ host, port, user, target, keyPath, dir, sshCommand, scpCommand,
-sshBaseArgs, scpBaseArgs, bins, sshdPid, logPath, configPath, pidFile, stop(), cleanup() }`.
+`rig` 暴露 `{ host, port, user, target, keyPath, dir, sshCommand, scpCommand,
+sshBaseArgs, scpBaseArgs, bins, sshdPid, logPath, configPath, pidFile, stop(), cleanup() }`。
 
-## The exact command line the rig accepts
+## 装置接受的准确命令行
 
-`rig.sshCommand` is the ready-to-use ssh prefix (everything before the remote command):
+`rig.sshCommand` 是可直接使用的 ssh 前缀（即远程命令之前的全部内容）：
 
 ```
 /usr/bin/ssh -i <rig>/clientkey -p <port> \
@@ -72,7 +71,7 @@ sshBaseArgs, scpBaseArgs, bins, sshdPid, logPath, configPath, pidFile, stop(), c
   -- <user>@127.0.0.1
 ```
 
-so a full invocation is:
+因此一次完整调用是：
 
 ```sh
 /usr/bin/ssh -i /tmp/dsh-ssh-rig-XXXX/clientkey -p 34907 \
@@ -80,7 +79,7 @@ so a full invocation is:
   -- "$(id -un)@127.0.0.1" 'echo RIG_OK'
 ```
 
-and the matching scp prefix (`-P` for the port, no target):
+与之对应的 scp 前缀（端口用 `-P`，不带 target）：
 
 ```sh
 /usr/bin/scp -i /tmp/dsh-ssh-rig-XXXX/clientkey -P 34907 \
@@ -88,20 +87,18 @@ and the matching scp prefix (`-P` for the port, no target):
   <local> "$(id -un)@127.0.0.1:<remote>"
 ```
 
-`-r` works for directories. `/usr/bin/ssh` etc. are resolved to absolute paths when
-present; override with `sshBin` / `scpBin` / `sshdBin` / `sshKeygenBin` options.
+`-r` 可用于目录。存在时，`/usr/bin/ssh` 等会被解析为绝对路径；可用 `sshBin` /
+`scpBin` / `sshdBin` / `sshKeygenBin` 选项覆盖。
 
-## Guarantees and limits
+## 保证与限制
 
-- Never reads or writes `~/.ssh`; clients always pass `UserKnownHostsFile=/dev/null`
-  and `StrictHostKeyChecking=no`.
-- Never requires root and never binds a privileged port (`--port` is validated to
-  `[1024, 65535]`).
-- Teardown always kills sshd, waits for the port to close and removes the rig dir;
-  `stopRig` is idempotent and `withRig`/the self-test clean up in `finally` blocks.
-- **Non-root sshd logs the client in as the current user**, so the rig's remote side
-  is the local filesystem. Remote paths are ordinary local paths; that is what makes
-  `scp` round-trips byte-comparable. It is not a security boundary.
-- The rig is a test double for the *transport*: it exercises real OpenSSH handshakes,
-  key auth, `scp`/SFTP and exit-code propagation. It says nothing about hosts reached
-  through `~/.ssh/config` aliases or `ProxyJump`.
+- 从不读写 `~/.ssh`；客户端始终传入 `UserKnownHostsFile=/dev/null` 与
+  `StrictHostKeyChecking=no`。
+- 从不需要 root，也从不绑定特权端口（`--port` 会被校验为 `[1024, 65535]`）。
+- 清理阶段总会杀掉 sshd、等待端口关闭并删除装置目录；`stopRig` 是幂等的，而
+  `withRig` / 自测会在 `finally` 块中清理。
+- **非 root 的 sshd 会让客户端以当前用户身份登录**，因此装置的远端就是本地文件
+  系统。远程路径就是普通的本地路径；这正是 `scp` 往返内容可以逐字节比较的原因。
+  它并不是安全边界。
+- 该装置是*传输层*的测试替身：它演练真实的 OpenSSH 握手、密钥认证、`scp`/SFTP 与
+  退出码传递。它并不说明通过 `~/.ssh/config` 别名或 `ProxyJump` 抵达的主机的情况。

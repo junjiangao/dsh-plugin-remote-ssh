@@ -6,13 +6,13 @@
       "description": "package.json parses and declares the frozen manifest fields",
       "ok": true,
       "ms": 0,
-      "notes": "name=@junjiangao/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
+      "notes": "name=@junjiangao/dsh-plugin-remote-ssh version=1.0.0 files=7 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
     },
     {
       "id": "S2-no-dependencies",
       "description": "package.json declares NO dependencies; only installation-scope peerDependencies",
       "ok": true,
-      "ms": 1,
+      "ms": 0,
       "notes": "dependencies={} optionalDependencies={} peerDependencies={\"@deepseek-ai/dsh-tools\":\"*\",\"@deepseek-ai/schemastery\":\"*\"}"
     },
     {
@@ -20,20 +20,20 @@
       "description": "every file referenced by main/exports/files exists on disk",
       "ok": true,
       "ms": 0,
-      "notes": "5 referenced paths exist"
+      "notes": "6 referenced paths exist"
     },
     {
       "id": "S4-cordis-patch",
       "description": "cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row",
       "ok": true,
-      "ms": 1,
+      "ms": 5,
       "notes": "insert: id=remote-ssh name=@junjiangao/dsh-plugin-remote-ssh config={}"
     },
     {
       "id": "S5-locales",
       "description": "locale/en.json and locale/zh.json parse and carry real meta copy",
       "ok": true,
-      "ms": 0,
+      "ms": 1,
       "notes": "en=\"Remote SSH\" zh=\"远程 SSH\""
     },
     {
@@ -47,14 +47,14 @@
       "id": "S7-node-check",
       "description": "every .js/.mjs file passes `node --check` (5 files)",
       "ok": true,
-      "ms": 183,
+      "ms": 204,
       "notes": "5 files checked, 0 syntax errors"
     },
     {
       "id": "S8-bare-imports",
       "description": "the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery",
       "ok": true,
-      "ms": 1,
+      "ms": 0,
       "notes": "@deepseek-ai/schemastery x1, @deepseek-ai/dsh-tools x1"
     },
     {

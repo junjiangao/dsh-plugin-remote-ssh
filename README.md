@@ -1,30 +1,28 @@
 # @junjiangao/dsh-plugin-remote-ssh
 
-Model-facing SSH tools for the DeepSeek Harness. The bundle registers four Host
-tools that let the agent run commands and move files on remote machines through
-the **system OpenSSH CLI** (`ssh`, `scp`).
+> English version: [README.en.md](./README.en.md)
 
-- **No npm dependencies.** The plugin imports only Node built-ins plus the two
-  packages the harness already provides (`@deepseek-ai/dsh-tools` and
-  `@deepseek-ai/schemastery`), which resolve from the dsh installation at runtime.
-- **No host configuration required.** Any OpenSSH target works: an ssh_config
-  alias (`MyOracleCloud`), `user@hostname`, or a bare hostname/IP. OpenSSH
-  resolves aliases and keys itself.
-- **Never interactive, never hanging.** Every invocation passes
-  `BatchMode=yes` and `ConnectTimeout`, and every spawn has a hard timeout with
-  a SIGTERM→SIGKILL escalation.
+面向 DeepSeek Harness 的模型可用 SSH 工具。该 bundle 注册四个 Host 工具，让 agent
+通过**系统 OpenSSH CLI**（`ssh`、`scp`）在远程主机上执行命令、传输文件。
 
-## Install
+- **零 npm 依赖。** 插件只导入 Node 内置模块，以及 harness 已提供的两个包
+  （`@deepseek-ai/dsh-tools` 与 `@deepseek-ai/schemastery`），它们在运行时从 dsh
+  安装目录解析。
+- **无需预配置主机。** 任意 OpenSSH 目标都可用：ssh_config 别名
+  （`MyOracleCloud`）、`user@hostname`，或裸主机名/IP。别名与密钥由 OpenSSH
+  自行解析。
+- **永不交互、永不挂起。** 每次调用都传入 `BatchMode=yes` 与 `ConnectTimeout`，
+  每个子进程都有硬超时，并按 SIGTERM→SIGKILL 逐级终止。
 
-The bundle is installed into a profile with the plugin manager (the Lead or the
-user owns this step):
+## 安装
+
+该 bundle 通过插件管理器安装到某个 profile（此步骤由 Lead 或用户执行）：
 
 ```
 plugin_manager install_bundle target=/work/Repos/github/dsh-plugin-remote-ssh
 ```
 
-The manifest declares `dsh.bundle.patch`, so the install inserts this row into
-the profile composition:
+清单声明了 `dsh.bundle.patch`，因此安装会把下面这一行插入 profile 组合：
 
 ```yaml
 - insert:
@@ -33,14 +31,13 @@ the profile composition:
       config: {}
 ```
 
-The row activates with `config: {}`: no hosts are pre-configured and all targets
-are allowed. Replacing the package with a new build requires a harness restart
-to load a fresh JavaScript module generation.
+该行以 `config: {}` 激活：不预配置任何主机，且允许所有目标。用新的构建替换该包后，
+需要重启 harness 才能加载新的 JavaScript 模块代际。
 
-## Configuration
+## 配置
 
-Add an override of the `remote-ssh` row in the profile's `cordis.patch.yml`
-(a row override replaces the whole `config`, so restate every key you need):
+在 profile 的 `cordis.patch.yml` 中为 `remote-ssh` 行添加覆盖（行覆盖会替换整个
+`config`，因此需要重新写全你用到的每个键）：
 
 ```yaml
 - id: remote-ssh
@@ -66,98 +63,86 @@ Add an override of the `remote-ssh` row in the profile's `cordis.patch.yml`
           - ServerAliveInterval=30
 ```
 
-| Key | Default | Meaning |
+| 键 | 默认值 | 说明 |
 | --- | --- | --- |
-| `hosts` | `[]` | Pre-configured hosts addressable by `name`. Optional: raw OpenSSH targets work without any entry. |
-| `connectTimeoutMs` | `15000` | Passed to OpenSSH as `-o ConnectTimeout=<ceil(ms/1000)>`. |
-| `commandTimeoutMs` | `120000` | Default hard timeout for one command or transfer. |
-| `maxOutputBytes` | `262144` | Cap per captured output stream; overflow sets `truncated`. |
-| `strictHostKeyChecking` | `accept-new` | One of `accept-new`, `yes`, `no`. |
-| `allowedHosts` | `[]` | Empty allows any target. Otherwise a target must match an entry exactly or through a simple `*` glob (for example `*.internal.example.com`). Both the `host` argument and the resolved `user@hostname` are matched. |
-| `sshExecutable` | `ssh` | ssh binary name or path. |
-| `scpExecutable` | `scp` | scp binary name or path. |
+| `hosts` | `[]` | 可按 `name` 寻址的预配置主机。可选：不配置任何条目也能使用原始 OpenSSH 目标。 |
+| `connectTimeoutMs` | `15000` | 以 `-o ConnectTimeout=<ceil(ms/1000)>` 传给 OpenSSH。 |
+| `commandTimeoutMs` | `120000` | 单条命令或单次传输的默认硬超时。 |
+| `maxOutputBytes` | `262144` | 每个输出流的捕获上限；超出时置 `truncated`。 |
+| `strictHostKeyChecking` | `accept-new` | 取值之一：`accept-new`、`yes`、`no`。 |
+| `allowedHosts` | `[]` | 为空表示允许任意目标。否则目标必须与某个条目精确匹配，或匹配简单 `*` 通配（例如 `*.internal.example.com`）。同时匹配 `host` 参数与解析后的 `user@hostname`。 |
+| `sshExecutable` | `ssh` | ssh 可执行文件的名称或路径。 |
+| `scpExecutable` | `scp` | scp 可执行文件的名称或路径。 |
 
-A configured `name` expands to `hostname`/`user`/`port`/`identityFile`/`proxyJump`/
-`extraOptions`/`defaultCwd`. Anything else is handed to OpenSSH verbatim.
+已配置的 `name` 会展开为 `hostname`/`user`/`port`/`identityFile`/`proxyJump`/
+`extraOptions`/`defaultCwd`；其余目标字符串原样交给 OpenSSH。
 
-## Tools
+## 工具
 
 ### `ssh_hosts`
 
-`{ check?: boolean }` — list the configured hosts. With `check: true` each host
-is probed with a short non-interactive `true` command and reported with
-`reachable`, `latencyMs`, and `error`. The result also reports the resolved ssh
-executable path, the effective `allowedHosts`, and that raw OpenSSH targets are
-accepted.
+`{ check?: boolean }` —— 列出已配置的主机。当 `check: true` 时，会用一条简短的非交互
+`true` 命令探测每台主机，并报告 `reachable`、`latencyMs` 与 `error`。结果中还会给出
+解析后的 ssh 可执行文件路径、实际生效的 `allowedHosts`，以及接受原始 OpenSSH 目标。
 
 ### `ssh_exec`
 
-`{ host, command, cwd?, env?, timeoutMs?, pty?, stdin? }` — run one command on a
-remote host. Returns
-`{ host, target, exitCode, signal, stdout, stderr, durationMs, timedOut, truncated }`.
+`{ host, command, cwd?, env?, timeoutMs?, pty?, stdin? }` —— 在远程主机上执行一条
+命令。返回
+`{ host, target, exitCode, signal, stdout, stderr, durationMs, timedOut, truncated }`。
 
-- `cwd` is `cd`-ed into first, then `env` entries are exported, then `command`
-  runs — all in one remote script joined with `&&` and POSIX single-quote
-  escaped.
-- `env` keys must be valid POSIX names (`/^[A-Za-z_][A-Za-z0-9_]*$/`).
-- `timeoutMs` overrides `commandTimeoutMs` for this call. On expiry the ssh
-  process is killed (SIGTERM, then SIGKILL after ~2s) and the partial output is
-  returned with `timedOut: true`.
-- `pty: true` adds `-tt` for commands that need a terminal.
-- `stdin` is forwarded to the remote command.
+- 先 `cd` 到 `cwd`，再逐条导出 `env`，然后运行 `command` —— 全部在同一个远程脚本中
+  用 `&&` 连接，并做 POSIX 单引号转义。
+- `env` 的键必须是合法的 POSIX 名称（`/^[A-Za-z_][A-Za-z0-9_]*$/`）。
+- `timeoutMs` 覆盖本次调用的 `commandTimeoutMs`。超时后 ssh 进程会被终止
+  （先 SIGTERM，约 2 秒后 SIGKILL），并以 `timedOut: true` 返回部分输出。
+- `pty: true` 会加上 `-tt`，供需要终端的命令使用。
+- `stdin` 会转发给远程命令。
 
 ### `ssh_upload`
 
-`{ host, localPath, remotePath, recursive?, timeoutMs? }` — `scp` a local file
-or directory to the remote host. Returns
-`{ host, localPath, remotePath, exitCode, stderr, durationMs }`.
+`{ host, localPath, remotePath, recursive?, timeoutMs? }` —— 用 `scp` 把本地文件或
+目录传到远程主机。返回
+`{ host, localPath, remotePath, exitCode, stderr, durationMs }`。
 
 ### `ssh_download`
 
-`{ host, remotePath, localPath, recursive?, timeoutMs? }` — `scp` a remote file
-or directory to the local machine. Returns the same shape as `ssh_upload`.
+`{ host, remotePath, localPath, recursive?, timeoutMs? }` —— 用 `scp` 把远程文件或
+目录取回本机。返回结构与 `ssh_upload` 相同。
 
-Local paths are used as given (absolute, or relative to the harness process
-working directory). Remote paths are passed to the remote side verbatim.
+本地路径按原样使用（绝对路径，或相对于 harness 进程的工作目录）。远程路径原样传给
+远端。
 
-## Authentication model
+## 认证模型
 
-The plugin never handles credentials. OpenSSH does:
+插件从不处理凭据，一切交给 OpenSSH：
 
-- `BatchMode=yes` on every ssh/scp call, so a missing key fails immediately
-  instead of prompting for a password.
-- Key files and the ssh-agent are the only accepted mechanisms. `identityFile`
-  adds `-i <path>` for a configured host.
-- `StrictHostKeyChecking` defaults to `accept-new`: an unknown host key is
-  accepted once and then pinned in `known_hosts`; a changed key still fails.
-  Set it to `yes` for strict pre-provisioned hosts or `no` only for disposable
-  test machines.
-- `proxyJump` adds `-J` for bastion-routed hosts.
+- 每次 ssh/scp 调用都带 `BatchMode=yes`，因此缺少密钥时会立即失败，而不是提示输入
+  密码。
+- 只接受密钥文件与 ssh-agent 两种方式。`identityFile` 会为已配置的主机加上
+  `-i <path>`。
+- `StrictHostKeyChecking` 默认为 `accept-new`：未知主机密钥会被接受一次并固定到
+  `known_hosts`；密钥发生变化时仍然失败。对预先配置好的严格主机可设为 `yes`，仅在
+  一次性测试机上设为 `no`。
+- `proxyJump` 会为经跳板机的主机加上 `-J`。
 
-## Design note
+## 设计说明
 
-The transport shells out to the system OpenSSH CLI rather than implementing the
-protocol in JavaScript. That keeps the bundle dependency-free, reuses the user's
-existing `~/.ssh/config`, keys, agent, `known_hosts`, and jump hosts, and keeps
-authentication behaviour identical to what the user tests in a terminal. The
-cost is one process per call; every process is bounded by a hard timeout, output
-caps, and `BatchMode`.
+传输层通过 shell 调用系统 OpenSSH CLI，而不是用 JavaScript 实现协议。这样 bundle
+无需依赖，复用用户现有的 `~/.ssh/config`、密钥、agent、`known_hosts` 与跳板机配置，
+并使认证行为与用户在终端中的测试完全一致。代价是每次调用一个进程；每个进程都受硬
+超时、输出上限与 `BatchMode` 约束。
 
-All four tools are registered in `apply()` on `ctx.tools`, and every failure is
-returned as a structured result (or a clear thrown message for argument,
-permission, and configuration errors) — never as an unhandled rejection.
+四个工具都在 `apply()` 中注册到 `ctx.tools`；所有失败都以结构化结果返回（参数、
+权限与配置错误则抛出清晰的错误消息）——绝不产生未处理的 rejection。
 
-## Known limitations
+## 已知限制
 
-- **A timed-out command may keep running on the remote host.** The hard timeout
-  kills the local `ssh` client; it cannot stop the remote process, which
-  OpenSSH already started in the remote session. `ssh_exec` reports
-  `timedOut: true` and its rendered output says explicitly that only the local
-  client was terminated, so re-check the remote host (process list, sentinel
-  file, log) before assuming the command stopped. To bound remote work, make the
-  command self-limiting, for example `timeout 30 <command>`.
-- **`scp` operands beginning with `-`.** `ssh_upload` and `ssh_download` pass
-  `--` before the operands — this OpenSSH `scp` accepts it as an end-of-options
-  terminator — so a relative path such as `-draft.txt` is transferred as a path
-  instead of being rejected as an unknown option. Remote paths are still passed
-  to the remote side verbatim.
+- **超时的命令可能仍在远程主机上运行。** 硬超时只终止本地 `ssh` 客户端，无法停止
+  OpenSSH 已在远程会话中启动的进程。`ssh_exec` 会报告 `timedOut: true`，其渲染输出
+  会明确说明只终止了本地客户端；因此在假定命令已停止之前，请复查远程主机（进程
+  列表、哨兵文件、日志）。若要限制远程耗时，请让命令自带时限，例如
+  `timeout 30 <command>`。
+- **以 `-` 开头的 `scp` 操作数。** `ssh_upload` 与 `ssh_download` 会在操作数之前传入
+  `--`——本 OpenSSH `scp` 接受它作为选项结束符——因此像 `-draft.txt` 这样的相对路径
+  会被当作路径传输，而不会被当成未知选项拒绝。远程路径仍原样传给远端。

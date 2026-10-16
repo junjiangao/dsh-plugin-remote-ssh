@@ -1,0 +1,16 @@
+PASS  D1-files                           both READMEs exist and the primary one is Chinese (0ms)  zh=4378B (1106 CJK), en=7120B (0 CJK)
+PASS  D2-fences-balanced                 no unbalanced code fence in either README (0ms)  3 fences in each, same languages in the same order (,yaml,yaml)
+PASS  D3-inline-code-balanced            backticks balance per paragraph (outside fences), allowing multi-line spans (0ms)  all three READMEs clean (multi-line code spans counted as one paragraph)
+PASS  D4-yaml-parses-and-matches         every ```yaml block parses and the Chinese one is deep-equal to the English one (2ms)  2 yaml block(s) parse and are identical to the English version
+PASS  D5-config-yaml-keys                the configuration override carries exactly the eight config keys (0ms)  id=remote-ssh + all 8 config keys + all 9 host-entry keys, in order
+PASS  D6-tables-consistent               every markdown table has a consistent column count (1ms)  README.md#1=3cols×10rows, README.en.md#1=3cols×10rows, tests/rig/README.md#1=2cols×8rows
+PASS  D7-config-key-table                the config-key table lists all eight keys, in the English order (0ms)  8 keys, identical order: hosts, connectTimeoutMs, commandTimeoutMs, maxOutputBytes, strictHostKeyChecking, allowedHosts, sshExecutable, scpExecutable
+PASS  D8-tool-headings                   all four `### ssh_*` headings survive untranslated in both READMEs (0ms)  `ssh_hosts` `ssh_exec` `ssh_upload` `ssh_download`
+PASS  D9-heading-structure               heading level sequence maps 1:1 between the two READMEs (0ms)  11 headings, identical levels; H1 = @junjiangao/dsh-plugin-remote-ssh
+PASS  D10-frozen-identifiers             every frozen tool/param/result/config identifier appears untranslated in both READMEs (0ms)  52 frozen identifiers present verbatim in both
+PASS  D11-no-identifier-rename           no frozen identifier was renamed, and no identifier-like span was invented (0ms)  code-span identifiers: 96 in en, 96 in zh; en-only=[none], zh-only=[none]
+PASS  D12-rig-readme-identifiers         the Chinese rig README keeps every command, flag and JSON field verbatim (0ms)  69 verbatim tokens + 15 JSON fields intact; 552 CJK chars
+PASS  D13-package-files                  package.json ships README.en.md and still lists every runtime file (0ms)  files = ["index.js","lib/*.js","cordis.patch.yml","locale/*.json","icon.svg","README.md","README.en.md"]
+
+docs-audit: 13 passed, 0 failed, 13 total (5ms)
+wrote /work/Repos/github/dsh-plugin-remote-ssh/verification/out/docs-audit.json

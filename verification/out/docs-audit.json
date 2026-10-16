@@ -1,0 +1,102 @@
+{
+  "suite": "docs-audit",
+  "results": [
+    {
+      "id": "D1-files",
+      "description": "both READMEs exist and the primary one is Chinese",
+      "ok": true,
+      "ms": 0,
+      "notes": "zh=4378B (1106 CJK), en=7120B (0 CJK)"
+    },
+    {
+      "id": "D2-fences-balanced",
+      "description": "no unbalanced code fence in either README",
+      "ok": true,
+      "ms": 0,
+      "notes": "3 fences in each, same languages in the same order (,yaml,yaml)"
+    },
+    {
+      "id": "D3-inline-code-balanced",
+      "description": "backticks balance per paragraph (outside fences), allowing multi-line spans",
+      "ok": true,
+      "ms": 0,
+      "notes": "all three READMEs clean (multi-line code spans counted as one paragraph)"
+    },
+    {
+      "id": "D4-yaml-parses-and-matches",
+      "description": "every ```yaml block parses and the Chinese one is deep-equal to the English one",
+      "ok": true,
+      "ms": 2,
+      "notes": "2 yaml block(s) parse and are identical to the English version"
+    },
+    {
+      "id": "D5-config-yaml-keys",
+      "description": "the configuration override carries exactly the eight config keys",
+      "ok": true,
+      "ms": 0,
+      "notes": "id=remote-ssh + all 8 config keys + all 9 host-entry keys, in order"
+    },
+    {
+      "id": "D6-tables-consistent",
+      "description": "every markdown table has a consistent column count",
+      "ok": true,
+      "ms": 1,
+      "notes": "README.md#1=3cols×10rows, README.en.md#1=3cols×10rows, tests/rig/README.md#1=2cols×8rows"
+    },
+    {
+      "id": "D7-config-key-table",
+      "description": "the config-key table lists all eight keys, in the English order",
+      "ok": true,
+      "ms": 0,
+      "notes": "8 keys, identical order: hosts, connectTimeoutMs, commandTimeoutMs, maxOutputBytes, strictHostKeyChecking, allowedHosts, sshExecutable, scpExecutable"
+    },
+    {
+      "id": "D8-tool-headings",
+      "description": "all four `### ssh_*` headings survive untranslated in both READMEs",
+      "ok": true,
+      "ms": 0,
+      "notes": "`ssh_hosts` `ssh_exec` `ssh_upload` `ssh_download`"
+    },
+    {
+      "id": "D9-heading-structure",
+      "description": "heading level sequence maps 1:1 between the two READMEs",
+      "ok": true,
+      "ms": 0,
+      "notes": "11 headings, identical levels; H1 = @junjiangao/dsh-plugin-remote-ssh"
+    },
+    {
+      "id": "D10-frozen-identifiers",
+      "description": "every frozen tool/param/result/config identifier appears untranslated in both READMEs",
+      "ok": true,
+      "ms": 0,
+      "notes": "52 frozen identifiers present verbatim in both"
+    },
+    {
+      "id": "D11-no-identifier-rename",
+      "description": "no frozen identifier was renamed, and no identifier-like span was invented",
+      "ok": true,
+      "ms": 0,
+      "notes": "code-span identifiers: 96 in en, 96 in zh; en-only=[none], zh-only=[none]"
+    },
+    {
+      "id": "D12-rig-readme-identifiers",
+      "description": "the Chinese rig README keeps every command, flag and JSON field verbatim",
+      "ok": true,
+      "ms": 0,
+      "notes": "69 verbatim tokens + 15 JSON fields intact; 552 CJK chars"
+    },
+    {
+      "id": "D13-package-files",
+      "description": "package.json ships README.en.md and still lists every runtime file",
+      "ok": true,
+      "ms": 0,
+      "notes": "files = [\"index.js\",\"lib/*.js\",\"cordis.patch.yml\",\"locale/*.json\",\"icon.svg\",\"README.md\",\"README.en.md\"]"
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "failures": []
+  }
+}
