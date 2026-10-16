@@ -1,0 +1,74 @@
+{
+  "suite": "static-check",
+  "results": [
+    {
+      "id": "S1-package-json",
+      "description": "package.json parses and declares the frozen manifest fields",
+      "ok": true,
+      "ms": 0,
+      "notes": "name=@local/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
+    },
+    {
+      "id": "S2-no-dependencies",
+      "description": "package.json declares NO dependencies; only installation-scope peerDependencies",
+      "ok": true,
+      "ms": 0,
+      "notes": "dependencies={} optionalDependencies={} peerDependencies={\"@deepseek-ai/dsh-tools\":\"*\",\"@deepseek-ai/schemastery\":\"*\"}"
+    },
+    {
+      "id": "S3-referenced-files-exist",
+      "description": "every file referenced by main/exports/files exists on disk",
+      "ok": true,
+      "ms": 0,
+      "notes": "5 referenced paths exist"
+    },
+    {
+      "id": "S4-cordis-patch",
+      "description": "cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row",
+      "ok": true,
+      "ms": 1,
+      "notes": "insert: id=remote-ssh name=@local/dsh-plugin-remote-ssh config={}"
+    },
+    {
+      "id": "S5-locales",
+      "description": "locale/en.json and locale/zh.json parse and carry real meta copy",
+      "ok": true,
+      "ms": 0,
+      "notes": "en=\"Remote SSH\" zh=\"远程 SSH\""
+    },
+    {
+      "id": "S6-icon-svg",
+      "description": "icon.svg is well-formed SVG < 256 KiB with a viewBox and no external references",
+      "ok": true,
+      "ms": 2,
+      "notes": "1344 bytes, root=<svg>, 15 elements, viewBox present, 0 external refs"
+    },
+    {
+      "id": "S7-node-check",
+      "description": "every .js/.mjs file passes `node --check` (5 files)",
+      "ok": true,
+      "ms": 194,
+      "notes": "5 files checked, 0 syntax errors"
+    },
+    {
+      "id": "S8-bare-imports",
+      "description": "the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery",
+      "ok": true,
+      "ms": 1,
+      "notes": "@deepseek-ai/schemastery x1, @deepseek-ai/dsh-tools x1"
+    },
+    {
+      "id": "S9-tool-definitions",
+      "description": "the REAL harness defineTool accepts all four definitions with frozen params",
+      "ok": true,
+      "ms": 16,
+      "notes": "4 tools registered: ssh_download, ssh_exec, ssh_hosts, ssh_upload"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "failures": []
+  }
+}

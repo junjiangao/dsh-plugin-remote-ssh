@@ -1,0 +1,26 @@
+# `@local/dsh-plugin-remote-ssh` bundle patch.
+#
+# Inserts the single Host plugin row that registers the `ssh_hosts`,
+# `ssh_exec`, `ssh_upload`, and `ssh_download` tools. The row activates with an
+# empty config: no host is pre-configured and any OpenSSH target is accepted,
+# because OpenSSH itself resolves ssh_config aliases such as `MyOracleCloud`.
+#
+# Pre-configured hosts and the `allowedHosts` allow-list are user-owned
+# decisions. Add them to the profile's own cordis.patch.yml as an override of
+# this row, restating every key the row needs:
+#
+#   - id: remote-ssh
+#     config:
+#       hosts:
+#         - name: oracle
+#           hostname: 10.0.0.5
+#           user: ubuntu
+#           identityFile: ~/.ssh/oracle_ed25519
+#       allowedHosts:
+#         - oracle
+#         - "*.internal.example.com"
+
+- insert:
+    - id: remote-ssh
+      name: '@local/dsh-plugin-remote-ssh'
+      config: {}

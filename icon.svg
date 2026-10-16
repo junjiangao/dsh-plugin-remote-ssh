@@ -1,0 +1,21 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Remote SSH">
+  <title>Remote SSH</title>
+  <defs>
+    <linearGradient id="remote-ssh-link" x1="6" y1="26" x2="30" y2="10" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#41E1AC"/>
+      <stop offset="1" stop-color="#5547D2"/>
+    </linearGradient>
+  </defs>
+  <!-- Local terminal window -->
+  <rect x="2" y="10" width="16" height="16" rx="3" stroke="#2F2295" stroke-width="2"/>
+  <path d="M6.2 15.2l3 3-3 3" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M11.4 21.2h3.4" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Encrypted link to the remote side -->
+  <path d="M19.4 18h3.2" stroke="#2F2295" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 2.4"/>
+  <path d="M22.6 15.2l2.8 2.8-2.8 2.8" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Remote host stack -->
+  <rect x="26" y="10.5" width="8" height="6" rx="2" stroke="#2F2295" stroke-width="2"/>
+  <rect x="26" y="19.5" width="8" height="6" rx="2" stroke="#2F2295" stroke-width="2"/>
+  <circle cx="28.8" cy="13.5" r="1.1" fill="#41E1AC"/>
+  <circle cx="28.8" cy="22.5" r="1.1" fill="#41E1AC"/>
+</svg>
