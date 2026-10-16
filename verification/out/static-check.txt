@@ -1,12 +1,13 @@
-PASS  S1-package-json                    package.json parses and declares the frozen manifest fields (0ms)  name=@local/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json
+PASS  S1-package-json                    package.json parses and declares the frozen manifest fields (0ms)  name=@junjiangao/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json
 PASS  S2-no-dependencies                 package.json declares NO dependencies; only installation-scope peerDependencies (0ms)  dependencies={} optionalDependencies={} peerDependencies={"@deepseek-ai/dsh-tools":"*","@deepseek-ai/schemastery":"*"}
 PASS  S3-referenced-files-exist          every file referenced by main/exports/files exists on disk (0ms)  5 referenced paths exist
-PASS  S4-cordis-patch                    cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row (1ms)  insert: id=remote-ssh name=@local/dsh-plugin-remote-ssh config={}
+PASS  S4-cordis-patch                    cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row (1ms)  insert: id=remote-ssh name=@junjiangao/dsh-plugin-remote-ssh config={}
 PASS  S5-locales                         locale/en.json and locale/zh.json parse and carry real meta copy (0ms)  en="Remote SSH" zh="远程 SSH"
 PASS  S6-icon-svg                        icon.svg is well-formed SVG < 256 KiB with a viewBox and no external references (2ms)  1344 bytes, root=<svg>, 15 elements, viewBox present, 0 external refs
-PASS  S7-node-check                      every .js/.mjs file passes `node --check` (5 files) (194ms)  5 files checked, 0 syntax errors
-PASS  S8-bare-imports                    the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery (1ms)  @deepseek-ai/schemastery x1, @deepseek-ai/dsh-tools x1
-PASS  S9-tool-definitions                the REAL harness defineTool accepts all four definitions with frozen params (16ms)  4 tools registered: ssh_download, ssh_exec, ssh_hosts, ssh_upload
+PASS  S7-node-check                      every .js/.mjs file passes `node --check` (5 files) (197ms)  5 files checked, 0 syntax errors
+PASS  S8-bare-imports                    the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery (0ms)  @deepseek-ai/schemastery x1, @deepseek-ai/dsh-tools x1
+PASS  S9-tool-definitions                the REAL harness defineTool accepts all four definitions with frozen params (17ms)  4 tools registered: ssh_download, ssh_exec, ssh_hosts, ssh_upload
+PASS  S10-no-legacy-name                 no stale pre-rename package reference remains anywhere in the repo (0ms)  0 files contain the pre-rename name (scanned the whole repo except .git/ and node_modules/)
 
-static-check: 9 passed, 0 failed, 9 total (215ms)
+static-check: 10 passed, 0 failed, 10 total (218ms)
 wrote /work/Repos/github/dsh-plugin-remote-ssh/verification/out/static-check.json

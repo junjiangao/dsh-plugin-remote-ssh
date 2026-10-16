@@ -1,9 +1,13 @@
 {
-  "name": "@local/dsh-plugin-remote-ssh",
+  "name": "@junjiangao/dsh-plugin-remote-ssh",
   "version": "1.0.0",
   "private": true,
   "description": "Model-facing SSH tools for the DeepSeek Harness: run commands and transfer files on remote hosts through the system OpenSSH client.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junjiangao/dsh-plugin-remote-ssh.git"
+  },
   "main": "index.js",
   "icon": "./icon.svg",
   "exports": {

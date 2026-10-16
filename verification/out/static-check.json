@@ -6,13 +6,13 @@
       "description": "package.json parses and declares the frozen manifest fields",
       "ok": true,
       "ms": 0,
-      "notes": "name=@local/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
+      "notes": "name=@junjiangao/dsh-plugin-remote-ssh version=1.0.0 files=6 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
     },
     {
       "id": "S2-no-dependencies",
       "description": "package.json declares NO dependencies; only installation-scope peerDependencies",
       "ok": true,
-      "ms": 0,
+      "ms": 1,
       "notes": "dependencies={} optionalDependencies={} peerDependencies={\"@deepseek-ai/dsh-tools\":\"*\",\"@deepseek-ai/schemastery\":\"*\"}"
     },
     {
@@ -27,7 +27,7 @@
       "description": "cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row",
       "ok": true,
       "ms": 1,
-      "notes": "insert: id=remote-ssh name=@local/dsh-plugin-remote-ssh config={}"
+      "notes": "insert: id=remote-ssh name=@junjiangao/dsh-plugin-remote-ssh config={}"
     },
     {
       "id": "S5-locales",
@@ -47,7 +47,7 @@
       "id": "S7-node-check",
       "description": "every .js/.mjs file passes `node --check` (5 files)",
       "ok": true,
-      "ms": 194,
+      "ms": 183,
       "notes": "5 files checked, 0 syntax errors"
     },
     {
@@ -61,14 +61,21 @@
       "id": "S9-tool-definitions",
       "description": "the REAL harness defineTool accepts all four definitions with frozen params",
       "ok": true,
-      "ms": 16,
+      "ms": 15,
       "notes": "4 tools registered: ssh_download, ssh_exec, ssh_hosts, ssh_upload"
+    },
+    {
+      "id": "S10-no-legacy-name",
+      "description": "no stale pre-rename package reference remains anywhere in the repo",
+      "ok": true,
+      "ms": 0,
+      "notes": "0 files contain the pre-rename name (scanned the whole repo except .git/ and node_modules/)"
     }
   ],
   "summary": {
-    "passed": 9,
+    "passed": 10,
     "failed": 0,
-    "total": 9,
+    "total": 10,
     "failures": []
   }
 }

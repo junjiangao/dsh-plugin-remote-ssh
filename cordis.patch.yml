@@ -1,4 +1,4 @@
-# `@local/dsh-plugin-remote-ssh` bundle patch.
+# `@junjiangao/dsh-plugin-remote-ssh` bundle patch.
 #
 # Inserts the single Host plugin row that registers the `ssh_hosts`,
 # `ssh_exec`, `ssh_upload`, and `ssh_download` tools. The row activates with an
@@ -22,5 +22,5 @@
 
 - insert:
     - id: remote-ssh
-      name: '@local/dsh-plugin-remote-ssh'
+      name: '@junjiangao/dsh-plugin-remote-ssh'
       config: {}

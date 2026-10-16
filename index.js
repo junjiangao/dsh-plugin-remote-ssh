@@ -1,5 +1,5 @@
 /**
- * `@local/dsh-plugin-remote-ssh` — model-facing SSH tools for the DeepSeek
+ * `@junjiangao/dsh-plugin-remote-ssh` — model-facing SSH tools for the DeepSeek
  * Harness, backed by the system OpenSSH CLI.
  *
  * The bundle is Host-only: it registers `ssh_hosts`, `ssh_exec`, `ssh_upload`,
@@ -7,7 +7,7 @@
  * OpenSSH (keys and agent only — every invocation passes `BatchMode=yes`), and
  * targets that are not pre-configured are passed to OpenSSH verbatim, so an
  * ssh_config alias such as `MyOracleCloud` works without any configuration.
- * @module @local/dsh-plugin-remote-ssh
+ * @module @junjiangao/dsh-plugin-remote-ssh
  */
 import { Config, resolveConfig } from './lib/config.js';
 import { registerRemoteSshTools } from './lib/tools.js';

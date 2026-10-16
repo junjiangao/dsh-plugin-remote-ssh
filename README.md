@@ -1,4 +1,4 @@
-# @local/dsh-plugin-remote-ssh
+# @junjiangao/dsh-plugin-remote-ssh
 
 Model-facing SSH tools for the DeepSeek Harness. The bundle registers four Host
 tools that let the agent run commands and move files on remote machines through
@@ -29,7 +29,7 @@ the profile composition:
 ```yaml
 - insert:
     - id: remote-ssh
-      name: '@local/dsh-plugin-remote-ssh'
+      name: '@junjiangao/dsh-plugin-remote-ssh'
       config: {}
 ```
 

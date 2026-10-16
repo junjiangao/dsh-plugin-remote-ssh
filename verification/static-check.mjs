@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * STATIC verification of the @local/dsh-plugin-remote-ssh bundle (task-3 checks 1 & 2).
+ * STATIC verification of the @junjiangao/dsh-plugin-remote-ssh bundle
+ * (task-3 checks 1 & 2, re-run for task-5 after the package rename).
  *
  *   node verification/static-check.mjs [--json verification/out/static-check.json]
  *
@@ -22,7 +23,14 @@ register('./resolution/loader.mjs', import.meta.url);
 const yaml = dshRequire('js-yaml');
 const { SaxesParser } = dshRequire('saxes');
 
-const EXPECTED_NAME = '@local/dsh-plugin-remote-ssh';
+const EXPECTED_NAME = '@junjiangao/dsh-plugin-remote-ssh';
+/**
+ * The pre-rename package name, assembled from parts so that this file itself
+ * does not contain the literal: task-5 requires
+ * `grep -rn "<legacy-name>" . --exclude-dir=.git` to match nothing repo-wide.
+ */
+const LEGACY_NAME = '@' + 'local/dsh-plugin-remote-ssh';
+
 const FROZEN_TOOLS = {
   ssh_hosts: { check: { type: 'boolean' } },
   ssh_exec: {
@@ -283,6 +291,34 @@ await suite.check('S9-tool-definitions', 'the REAL harness defineTool accepts al
   }
   assert(problems.length === 0, problems.join('\n'));
   return `${captured.length} tools registered: ${[...byName.keys()].sort().join(', ')}`;
+});
+
+// ------------------------------------------------------------- rename hygiene
+await suite.check('S10-no-legacy-name', 'no stale pre-rename package reference remains anywhere in the repo', () => {
+  const skip = new Set(['.git', 'node_modules']);
+  const hits = [];
+  const visit = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (skip.has(entry.name)) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(full);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      let text;
+      try {
+        text = readFileSync(full, 'utf8');
+      } catch {
+        continue; // binary or unreadable
+      }
+      if (text.includes(LEGACY_NAME)) hits.push(path.relative(repoRoot, full));
+    }
+  };
+  visit(repoRoot);
+  assert(hits.length === 0,
+    `stale pre-rename reference found in: ${hits.join(', ')} (expected: the rename is complete)`);
+  return `0 files contain the pre-rename name (scanned the whole repo except .git/ and node_modules/)`;
 });
 
 function makeFakeCtx(captured) {

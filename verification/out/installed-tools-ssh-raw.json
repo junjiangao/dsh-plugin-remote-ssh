@@ -1,7 +1,7 @@
 {
   "source": "cordis_inspect_query platform=host provider=Tool method=listTools (NO input argument)",
-  "observedAt": "2026-10-16T15:13:35.623Z",
-  "note": "re-checked after Lead remove_bundle+install_bundle at 23:09 on the fixed revision",
+  "observedAt": "2026-10-16T15:24:41.874Z",
+  "note": "round 3: re-checked after the rename to @junjiangao/dsh-plugin-remote-ssh and the 23:21 install_bundle",
   "totalToolsInRegistry": 79,
   "sshToolsFound": [
     "ssh_hosts",
