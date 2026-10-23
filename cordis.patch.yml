@@ -1,24 +1,39 @@
 # `@junjiangao/dsh-plugin-remote-ssh` bundle patch.
 #
-# Inserts the single Host plugin row that registers the `ssh_hosts`,
-# `ssh_exec`, `ssh_upload`, and `ssh_download` tools. The row activates with an
-# empty config: no host is pre-configured and any OpenSSH target is accepted,
-# because OpenSSH itself resolves ssh_config aliases such as `MyOracleCloud`.
+# Inserts the single Host row that serves the SSH host-manager panel and the
+# mixed local/remote execution router. The row activates with an empty config;
+# defaults live in `lib/config.js`.
 #
-# Pre-configured hosts and the `allowedHosts` allow-list are user-owned
-# decisions. Add them to the profile's own cordis.patch.yml as an override of
-# this row, restating every key the row needs:
+# The plugin registers no model-facing tools. It exposes an authenticated
+# Connection RPC channel (`/api/remote-ssh/*`), reads hosts from `~/.ssh/config`
+# plus its own managed list, opens one independent official dsh-ssh Web
+# instance per remote host, and (option C) mounts remote workspaces into the
+# **current** window through a routing `fs` / `subprocess` / `sandbox`.
+#
+# The three base provider rows below are disabled because the router provides
+# those exact services from isolated execution worlds. The local world mounts
+# the same official `dsh-fs-sandbox` / `dsh-subprocess-local` /
+# `dsh-sandbox-local` providers, so local behaviour is unchanged.
+#
+# User overrides belong in the profile's own cordis.patch.yml, restating only
+# the keys they need, for example:
 #
 #   - id: remote-ssh
 #     config:
-#       hosts:
-#         - name: oracle
-#           hostname: 10.0.0.5
-#           user: ubuntu
-#           identityFile: ~/.ssh/oracle_ed25519
-#       allowedHosts:
-#         - oracle
-#         - "*.internal.example.com"
+#       profileName: dsh-remote
+#       inheritDesktopSettings: true
+#       sshPackageVersion: 0.2.1-rc.2
+
+# ── mixed execution: the router owns these three services ────────────────────
+
+- id: subprocess
+  disabled: true
+
+- id: sandbox
+  disabled: true
+
+- id: fs-sandbox
+  disabled: true
 
 - insert:
     - id: remote-ssh

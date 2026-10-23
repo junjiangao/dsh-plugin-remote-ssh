@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Remote SSH",
-    "description": "Run commands and transfer files on remote hosts through the system OpenSSH client, using key or agent authentication."
+    "description": "Manage SSH hosts (including imports from ~/.ssh/config) from the sidebar and open an official dsh-ssh remote work window in the browser."
   }
 }

@@ -1,32 +1,12 @@
-PASS  F0-registration                    apply() registers the four frozen tools with harness-valid schemas (3ms)  tools=ssh_download,ssh_exec,ssh_hosts,ssh_upload name=remote-ssh inject=["tools"]
-PASS  F1-exec-success                    ssh_exec runs a command: exitCode 0, stdout captured, not timed out (140ms)  exitCode=0 stdout="RIG_OK" durationMs=139
-PASS  F2-exec-exit-code                  ssh_exec propagates a non-zero remote exit code without throwing (166ms)  exitCode=42 propagated
-PASS  F3-exec-cwd-env                    ssh_exec applies cwd and env, including single quotes and spaces (139ms)  env+cwd applied, pwd=/tmp/dsh-ssh-rig-OvRRzC/e2e-cwd
-PASS  F4-exec-stdin-pty                  ssh_exec honours stdin and pty (-tt) (269ms)  stdin ok; pty -> /dev/pts/1
-PASS  F5-exec-timeout                    ssh_exec timeout: timedOut=true, returns promptly, local child killed (6617ms)  timedOut after 1507ms (wall 1508ms); remote pid(s) still alive at that point: "273216"
-PASS  O1-remote-outlives-kill            OBSERVATION: killing the local ssh child does NOT stop the remote command (4677ms)  remote command kept running and created its marker ~3s after the 1s timeout killed the client (documented in REPORT.md as a limitation of client-side cancellation)
-PASS  F6-output-truncation               output is capped at maxOutputBytes and flagged truncated (144ms)  stdout=4096B (cap 4096), truncated=true
-PASS  F7-transfer-roundtrip              ssh_upload then ssh_download returns byte-identical content (331ms)  65536B round trip byte-identical (sha256 729512428e966388...)
-PASS  F8-transfer-recursive              ssh_upload/ssh_download with recursive:true move a directory tree (318ms)  recursive tree round trip ok
-PASS  F9-hosts-listing                   ssh_hosts lists configured hosts and reports the resolved ssh path (3ms)  1 host (rig -> xyzhuanjian@127.0.0.1:45939), resolved=/usr/bin/ssh
-PASS  F10-hosts-check                    ssh_hosts check:true probes reachability and reports latency (161ms)  reachable=true latency=159ms
-PASS  F11-allowed-hosts                  allowedHosts rejects a non-matching target and accepts a matching glob (161ms)  denied with "remote-ssh: host \"rig\" (target \"xyzhuanjian@127.0.0.1\") is not permitted by allo"...; glob "r*" allowed
-PASS  F12-raw-target-alias               raw targets work with NO config entry, via an ssh_config alias (164ms)  unconfigured alias RigAlias resolved by OpenSSH itself (private -F config), target passed verbatim
-PASS  F13-default-accept-new             default strictHostKeyChecking=accept-new pins the host key (335ms)  accept-new pinned the rig key into the configured UserKnownHostsFile (accept_new_known_hosts); second call OK
-PASS  F14-argv-shape                     buildSshArgv/buildScpArgv match the frozen argv contract (5ms)  ssh/scp argv, sq(), composeRemoteScript() and ConnectTimeout all match
-PASS  F15-presentCall-render             presentCall and render run cleanly for every tool (503ms)  ssh_hosts: ssh executable: ssh (resolved: /usr/bin/ssh) | ssh_exec: ssh rig (xyzhuanjian@127.0.0.1) exited with code 0 in 161ms. | ssh_upload: Uploaded /tmp/dsh-e2e-8RWMni/up.bin to rig:/tmp/dsh-ssh-rig- | ssh_download: Downloaded /tmp/dsh-e2e-8RWMni/render-back.bin from rig:/tmp
-PASS  F16-timeout-render-caveat          FIXED: a timed-out ssh_exec render carries the remote-may-still-run caveat (1571ms)  caveat present on timeout, absent on success; header="ssh rig (xyzhuanjian@127.0.0.1) timed out after 1208ms and was killed in 1208ms."
-PASS  A1-metachar-target                 a target containing shell metacharacters is inert (no local shell, no injection) (32ms)  "127.0.0.1; touch /tmp/ds" -> exitCode=255 in 4ms; "127.0.0.1$(touch /tmp/ds" -> exitCode=255 in 5ms; "127.0.0.1`touch /tmp/dsh" -> exitCode=255 in 8ms; "127.0.0.1 && touch /tmp/" -> exitCode=255 in 14ms
-PASS  A2-invalid-env-keys                invalid POSIX env keys are rejected before any process is spawned (2ms)  "BAD KEY" -> "remote-ssh: env key \"BAD KEY\" is not a valid POSIX environment variabl"; "1LEADING" -> "remote-ssh: env key \"1LEADING\" is not a valid POSIX environment variab"; "a-b" -> "remote-ssh: env key \"a-b\" is not a valid POSIX environment variable na"; "" -> "remote-ssh: env key \"\" is not a valid POSIX environment variable name"; "a.b" -> "remote-ssh: env key \"a.b\" is not a valid POSIX environment variable na"; GOOD:123 -> "remote-ssh: env value for \"GOOD\" must be a string"
-PASS  A3-quoted-command-and-cwd          single quotes in command and cwd are preserved literally (167ms)  quotes preserved in command and in cwd "/tmp/dsh-ssh-rig-OvRRzC/we'ird dir"
-PASS  A4-unreachable-host                a closed port fails fast with a structured error and no hang (23ms)  exitCode=255 in 17ms, stderr="ssh: connect to host 127.0.0.1 port 44231: Connection refused\r"
-PASS  A5-abort-signal                    exec.signal cancels an in-flight command promptly (407ms)  aborted in 407ms, exitCode=255 signal=null
-PASS  A6-dash-prefixed-path              FIXED: a relative transfer path starting with "-" now transfers (662ms)  dash upload+download byte-identical (24B), ordinary relative and absolute paths still OK
-PASS  A7-nonexistent-cwd                 a nonexistent remote cwd fails structurally instead of hanging (157ms)  exitCode=1 in 157ms, stderr="Warning: Permanently added '[127.0.0.1]:45939' (ED25519) to "
-PASS  A8-max-output-boundary             maxOutputBytes=1 is handled without crashing or unbounded output (170ms)  cap=1 honoured (stdout="a", truncated=true)
-PASS  A9-no-ssh-writes                   nothing wrote to the real ~/.ssh during the whole run (1ms)  9 files in ~/.ssh, all byte-identical (incl. known_hosts); 0 of 25 checks wrote to ~/.ssh
-PASS  A10-no-unhandled-rejections        no unhandled promise rejections escaped the plugin (0ms)  none
+PASS  rig.ssh  the test sshd accepts a direct connection  sshd handshake
+PASS  rpc.routes  every declared endpoint route is mounted  13 routes
+PASS  rpc.remoteWorkspaces  the workspace inventory is empty before any remote window exists  empty inventory
+PASS  rpc.snapshot  snapshot returns imported hosts and settings  1 host(s)
+PASS  rpc.testConnection  the imported host passes a live SSH probe  DSH_TEST_OK
+PASS  controller.crud  managed host saves, updates and deletes through the controller  save → update → test → delete
+PASS  sshconfig.maintenance  managed fragment and Include block are idempotent  Include + fragment stable
+PASS  overlay.shape  per-host overlay contains exactly one official SSH family  4 SSH rows + disabled local providers
+PASS  instance.lifecycle  a fake CLI is started, redacted and stopped  url
+PASS  rpc.error  invalid content type and unknown ids are rejected safely  415 + not-found
 
-e2e: 28 passed, 0 failed, 28 total (17640ms)
-total wall clock: 17640ms
-wrote /work/Repos/github/dsh-plugin-remote-ssh/verification/out/e2e.json
+10 passed, 0 failed, 10 total

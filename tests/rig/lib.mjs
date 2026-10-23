@@ -30,6 +30,9 @@ const DEFAULT_BINS = {
 };
 
 const CLIENT_HARDENING = [
+  // Ignore every user/system config file: the rig is hermetic and must not be
+  // broken by a host `~/.ssh/config` or an unreadable system `ssh_config.d`.
+  '-F', '/dev/null',
   '-o', 'BatchMode=yes',
   '-o', 'StrictHostKeyChecking=no',
   '-o', 'UserKnownHostsFile=/dev/null',

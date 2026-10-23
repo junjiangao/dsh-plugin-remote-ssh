@@ -1,81 +1,87 @@
 {
-  "suite": "static-check",
+  "generatedAt": "2026-10-23T13:47:34.038Z",
+  "title": "static-check",
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "failures": [],
   "results": [
     {
-      "id": "S1-package-json",
-      "description": "package.json parses and declares the frozen manifest fields",
+      "id": "pkg.identity",
+      "description": "package name, version and engines",
       "ok": true,
       "ms": 0,
-      "notes": "name=@junjiangao/dsh-plugin-remote-ssh version=1.0.0 files=7 exports=.,./locale/*.json,./icon,./cordis.patch.yml,./package.json"
+      "notes": "@junjiangao/dsh-plugin-remote-ssh@2.0.0"
     },
     {
-      "id": "S2-no-dependencies",
-      "description": "package.json declares NO dependencies; only installation-scope peerDependencies",
+      "id": "pkg.bundle",
+      "description": "dsh.bundle patch and client entry are declared",
       "ok": true,
       "ms": 0,
-      "notes": "dependencies={} optionalDependencies={} peerDependencies={\"@deepseek-ai/dsh-tools\":\"*\",\"@deepseek-ai/schemastery\":\"*\"}"
+      "notes": "6 client packages in inject"
     },
     {
-      "id": "S3-referenced-files-exist",
-      "description": "every file referenced by main/exports/files exists on disk",
+      "id": "bundle.patch",
+      "description": "bundle patch disables the three base providers and inserts one remote-ssh row",
+      "ok": true,
+      "ms": 8,
+      "notes": "disable subprocess/sandbox/fs-sandbox + insert remote-ssh"
+    },
+    {
+      "id": "source.syntax",
+      "description": "every JavaScript module parses",
+      "ok": true,
+      "ms": 899,
+      "notes": "24 modules"
+    },
+    {
+      "id": "index.shape",
+      "description": "Host entry exports name/inject/Config/apply and no tools",
       "ok": true,
       "ms": 0,
-      "notes": "6 referenced paths exist"
+      "notes": "connection-only Host plugin"
     },
     {
-      "id": "S4-cordis-patch",
-      "description": "cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row",
-      "ok": true,
-      "ms": 5,
-      "notes": "insert: id=remote-ssh name=@junjiangao/dsh-plugin-remote-ssh config={}"
-    },
-    {
-      "id": "S5-locales",
-      "description": "locale/en.json and locale/zh.json parse and carry real meta copy",
-      "ok": true,
-      "ms": 1,
-      "notes": "en=\"Remote SSH\" zh=\"远程 SSH\""
-    },
-    {
-      "id": "S6-icon-svg",
-      "description": "icon.svg is well-formed SVG < 256 KiB with a viewBox and no external references",
-      "ok": true,
-      "ms": 2,
-      "notes": "1344 bytes, root=<svg>, 15 elements, viewBox present, 0 external refs"
-    },
-    {
-      "id": "S7-node-check",
-      "description": "every .js/.mjs file passes `node --check` (5 files)",
-      "ok": true,
-      "ms": 204,
-      "notes": "5 files checked, 0 syntax errors"
-    },
-    {
-      "id": "S8-bare-imports",
-      "description": "the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery",
+      "id": "config.keys",
+      "description": "Config covers every documented key",
       "ok": true,
       "ms": 0,
-      "notes": "@deepseek-ai/schemastery x1, @deepseek-ai/dsh-tools x1"
+      "notes": "16 keys"
     },
     {
-      "id": "S9-tool-definitions",
-      "description": "the REAL harness defineTool accepts all four definitions with frozen params",
-      "ok": true,
-      "ms": 15,
-      "notes": "4 tools registered: ssh_download, ssh_exec, ssh_hosts, ssh_upload"
-    },
-    {
-      "id": "S10-no-legacy-name",
-      "description": "no stale pre-rename package reference remains anywhere in the repo",
+      "id": "client.module",
+      "description": "client module uses the Harness loader and only react",
       "ok": true,
       "ms": 0,
-      "notes": "0 files contain the pre-rename name (scanned the whole repo except .git/ and node_modules/)"
+      "notes": "requires react"
+    },
+    {
+      "id": "locale.files",
+      "description": "locale JSON files are valid",
+      "ok": true,
+      "ms": 0,
+      "notes": "zh/en metadata"
+    },
+    {
+      "id": "icon.svg",
+      "description": "icon is a self-contained SVG",
+      "ok": true,
+      "ms": 0,
+      "notes": "24x24 inline SVG"
+    },
+    {
+      "id": "hygiene.legacy",
+      "description": "no legacy tool-era source files or symbols",
+      "ok": true,
+      "ms": 0,
+      "notes": "legacy files and strings absent"
+    },
+    {
+      "id": "docs.exist",
+      "description": "documentation and verification entry points exist",
+      "ok": true,
+      "ms": 0,
+      "notes": "README + architecture + 4 verification scripts"
     }
-  ],
-  "summary": {
-    "passed": 10,
-    "failed": 0,
-    "total": 10,
-    "failures": []
-  }
+  ]
 }

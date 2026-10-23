@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "远程 SSH",
-    "description": "通过系统 OpenSSH 客户端在远程主机上执行命令、传输文件，仅使用密钥或 ssh-agent 认证。"
+    "description": "在侧栏管理 SSH 主机（含 ~/.ssh/config 导入），并在浏览器中打开官方 dsh-ssh 的远端工作窗口。"
   }
 }

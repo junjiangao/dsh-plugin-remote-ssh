@@ -2,3 +2,8 @@ node_modules/
 *.log
 .DS_Store
 .codebase-memory/
+
+# Local-only notes and artifacts (not part of the published plugin).
+HANDOFF.md
+research/
+verification/out/live-*.png

@@ -1,208 +1,80 @@
 {
-  "suite": "e2e",
+  "generatedAt": "2026-10-23T13:38:18.449Z",
+  "title": "e2e",
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "failures": [],
   "results": [
     {
-      "id": "F0-registration",
-      "description": "apply() registers the four frozen tools with harness-valid schemas",
+      "id": "rig.ssh",
+      "description": "the test sshd accepts a direct connection",
       "ok": true,
-      "ms": 3,
-      "notes": "tools=ssh_download,ssh_exec,ssh_hosts,ssh_upload name=remote-ssh inject=[\"tools\"]"
+      "ms": 127,
+      "notes": "sshd handshake"
     },
     {
-      "id": "F1-exec-success",
-      "description": "ssh_exec runs a command: exitCode 0, stdout captured, not timed out",
-      "ok": true,
-      "ms": 140,
-      "notes": "exitCode=0 stdout=\"RIG_OK\" durationMs=139"
-    },
-    {
-      "id": "F2-exec-exit-code",
-      "description": "ssh_exec propagates a non-zero remote exit code without throwing",
-      "ok": true,
-      "ms": 166,
-      "notes": "exitCode=42 propagated"
-    },
-    {
-      "id": "F3-exec-cwd-env",
-      "description": "ssh_exec applies cwd and env, including single quotes and spaces",
-      "ok": true,
-      "ms": 139,
-      "notes": "env+cwd applied, pwd=/tmp/dsh-ssh-rig-OvRRzC/e2e-cwd"
-    },
-    {
-      "id": "F4-exec-stdin-pty",
-      "description": "ssh_exec honours stdin and pty (-tt)",
-      "ok": true,
-      "ms": 269,
-      "notes": "stdin ok; pty -> /dev/pts/1"
-    },
-    {
-      "id": "F5-exec-timeout",
-      "description": "ssh_exec timeout: timedOut=true, returns promptly, local child killed",
-      "ok": true,
-      "ms": 6617,
-      "notes": "timedOut after 1507ms (wall 1508ms); remote pid(s) still alive at that point: \"273216\""
-    },
-    {
-      "id": "O1-remote-outlives-kill",
-      "description": "OBSERVATION: killing the local ssh child does NOT stop the remote command",
-      "ok": true,
-      "ms": 4677,
-      "notes": "remote command kept running and created its marker ~3s after the 1s timeout killed the client (documented in REPORT.md as a limitation of client-side cancellation)"
-    },
-    {
-      "id": "F6-output-truncation",
-      "description": "output is capped at maxOutputBytes and flagged truncated",
-      "ok": true,
-      "ms": 144,
-      "notes": "stdout=4096B (cap 4096), truncated=true"
-    },
-    {
-      "id": "F7-transfer-roundtrip",
-      "description": "ssh_upload then ssh_download returns byte-identical content",
-      "ok": true,
-      "ms": 331,
-      "notes": "65536B round trip byte-identical (sha256 729512428e966388...)"
-    },
-    {
-      "id": "F8-transfer-recursive",
-      "description": "ssh_upload/ssh_download with recursive:true move a directory tree",
-      "ok": true,
-      "ms": 318,
-      "notes": "recursive tree round trip ok"
-    },
-    {
-      "id": "F9-hosts-listing",
-      "description": "ssh_hosts lists configured hosts and reports the resolved ssh path",
-      "ok": true,
-      "ms": 3,
-      "notes": "1 host (rig -> xyzhuanjian@127.0.0.1:45939), resolved=/usr/bin/ssh"
-    },
-    {
-      "id": "F10-hosts-check",
-      "description": "ssh_hosts check:true probes reachability and reports latency",
-      "ok": true,
-      "ms": 161,
-      "notes": "reachable=true latency=159ms"
-    },
-    {
-      "id": "F11-allowed-hosts",
-      "description": "allowedHosts rejects a non-matching target and accepts a matching glob",
-      "ok": true,
-      "ms": 161,
-      "notes": "denied with \"remote-ssh: host \\\"rig\\\" (target \\\"xyzhuanjian@127.0.0.1\\\") is not permitted by allo\"...; glob \"r*\" allowed"
-    },
-    {
-      "id": "F12-raw-target-alias",
-      "description": "raw targets work with NO config entry, via an ssh_config alias",
-      "ok": true,
-      "ms": 164,
-      "notes": "unconfigured alias RigAlias resolved by OpenSSH itself (private -F config), target passed verbatim"
-    },
-    {
-      "id": "F13-default-accept-new",
-      "description": "default strictHostKeyChecking=accept-new pins the host key",
-      "ok": true,
-      "ms": 335,
-      "notes": "accept-new pinned the rig key into the configured UserKnownHostsFile (accept_new_known_hosts); second call OK"
-    },
-    {
-      "id": "F14-argv-shape",
-      "description": "buildSshArgv/buildScpArgv match the frozen argv contract",
-      "ok": true,
-      "ms": 5,
-      "notes": "ssh/scp argv, sq(), composeRemoteScript() and ConnectTimeout all match"
-    },
-    {
-      "id": "F15-presentCall-render",
-      "description": "presentCall and render run cleanly for every tool",
-      "ok": true,
-      "ms": 503,
-      "notes": "ssh_hosts: ssh executable: ssh (resolved: /usr/bin/ssh) | ssh_exec: ssh rig (xyzhuanjian@127.0.0.1) exited with code 0 in 161ms. | ssh_upload: Uploaded /tmp/dsh-e2e-8RWMni/up.bin to rig:/tmp/dsh-ssh-rig- | ssh_download: Downloaded /tmp/dsh-e2e-8RWMni/render-back.bin from rig:/tmp"
-    },
-    {
-      "id": "F16-timeout-render-caveat",
-      "description": "FIXED: a timed-out ssh_exec render carries the remote-may-still-run caveat",
-      "ok": true,
-      "ms": 1571,
-      "notes": "caveat present on timeout, absent on success; header=\"ssh rig (xyzhuanjian@127.0.0.1) timed out after 1208ms and was killed in 1208ms.\""
-    },
-    {
-      "id": "A1-metachar-target",
-      "description": "a target containing shell metacharacters is inert (no local shell, no injection)",
-      "ok": true,
-      "ms": 32,
-      "notes": "\"127.0.0.1; touch /tmp/ds\" -> exitCode=255 in 4ms; \"127.0.0.1$(touch /tmp/ds\" -> exitCode=255 in 5ms; \"127.0.0.1`touch /tmp/dsh\" -> exitCode=255 in 8ms; \"127.0.0.1 && touch /tmp/\" -> exitCode=255 in 14ms"
-    },
-    {
-      "id": "A2-invalid-env-keys",
-      "description": "invalid POSIX env keys are rejected before any process is spawned",
-      "ok": true,
-      "ms": 2,
-      "notes": "\"BAD KEY\" -> \"remote-ssh: env key \\\"BAD KEY\\\" is not a valid POSIX environment variabl\"; \"1LEADING\" -> \"remote-ssh: env key \\\"1LEADING\\\" is not a valid POSIX environment variab\"; \"a-b\" -> \"remote-ssh: env key \\\"a-b\\\" is not a valid POSIX environment variable na\"; \"\" -> \"remote-ssh: env key \\\"\\\" is not a valid POSIX environment variable name\"; \"a.b\" -> \"remote-ssh: env key \\\"a.b\\\" is not a valid POSIX environment variable na\"; GOOD:123 -> \"remote-ssh: env value for \\\"GOOD\\\" must be a string\""
-    },
-    {
-      "id": "A3-quoted-command-and-cwd",
-      "description": "single quotes in command and cwd are preserved literally",
-      "ok": true,
-      "ms": 167,
-      "notes": "quotes preserved in command and in cwd \"/tmp/dsh-ssh-rig-OvRRzC/we'ird dir\""
-    },
-    {
-      "id": "A4-unreachable-host",
-      "description": "a closed port fails fast with a structured error and no hang",
-      "ok": true,
-      "ms": 23,
-      "notes": "exitCode=255 in 17ms, stderr=\"ssh: connect to host 127.0.0.1 port 44231: Connection refused\\r\""
-    },
-    {
-      "id": "A5-abort-signal",
-      "description": "exec.signal cancels an in-flight command promptly",
-      "ok": true,
-      "ms": 407,
-      "notes": "aborted in 407ms, exitCode=255 signal=null"
-    },
-    {
-      "id": "A6-dash-prefixed-path",
-      "description": "FIXED: a relative transfer path starting with \"-\" now transfers",
-      "ok": true,
-      "ms": 662,
-      "notes": "dash upload+download byte-identical (24B), ordinary relative and absolute paths still OK"
-    },
-    {
-      "id": "A7-nonexistent-cwd",
-      "description": "a nonexistent remote cwd fails structurally instead of hanging",
-      "ok": true,
-      "ms": 157,
-      "notes": "exitCode=1 in 157ms, stderr=\"Warning: Permanently added '[127.0.0.1]:45939' (ED25519) to \""
-    },
-    {
-      "id": "A8-max-output-boundary",
-      "description": "maxOutputBytes=1 is handled without crashing or unbounded output",
-      "ok": true,
-      "ms": 170,
-      "notes": "cap=1 honoured (stdout=\"a\", truncated=true)"
-    },
-    {
-      "id": "A9-no-ssh-writes",
-      "description": "nothing wrote to the real ~/.ssh during the whole run",
+      "id": "rpc.routes",
+      "description": "every declared endpoint route is mounted",
       "ok": true,
       "ms": 1,
-      "notes": "9 files in ~/.ssh, all byte-identical (incl. known_hosts); 0 of 25 checks wrote to ~/.ssh"
+      "notes": "13 routes"
     },
     {
-      "id": "A10-no-unhandled-rejections",
-      "description": "no unhandled promise rejections escaped the plugin",
+      "id": "rpc.remoteWorkspaces",
+      "description": "the workspace inventory is empty before any remote window exists",
       "ok": true,
-      "ms": 0,
-      "notes": "none"
+      "ms": 5,
+      "notes": "empty inventory"
+    },
+    {
+      "id": "rpc.snapshot",
+      "description": "snapshot returns imported hosts and settings",
+      "ok": true,
+      "ms": 10,
+      "notes": "1 host(s)"
+    },
+    {
+      "id": "rpc.testConnection",
+      "description": "the imported host passes a live SSH probe",
+      "ok": true,
+      "ms": 128,
+      "notes": "DSH_TEST_OK"
+    },
+    {
+      "id": "controller.crud",
+      "description": "managed host saves, updates and deletes through the controller",
+      "ok": true,
+      "ms": 159,
+      "notes": "save → update → test → delete"
+    },
+    {
+      "id": "sshconfig.maintenance",
+      "description": "managed fragment and Include block are idempotent",
+      "ok": true,
+      "ms": 27,
+      "notes": "Include + fragment stable"
+    },
+    {
+      "id": "overlay.shape",
+      "description": "per-host overlay contains exactly one official SSH family",
+      "ok": true,
+      "ms": 1,
+      "notes": "4 SSH rows + disabled local providers"
+    },
+    {
+      "id": "instance.lifecycle",
+      "description": "a fake CLI is started, redacted and stopped",
+      "ok": true,
+      "ms": 25,
+      "notes": "url"
+    },
+    {
+      "id": "rpc.error",
+      "description": "invalid content type and unknown ids are rejected safely",
+      "ok": true,
+      "ms": 5,
+      "notes": "415 + not-found"
     }
-  ],
-  "summary": {
-    "passed": 28,
-    "failed": 0,
-    "total": 28,
-    "failures": []
-  },
-  "unhandled": []
+  ]
 }

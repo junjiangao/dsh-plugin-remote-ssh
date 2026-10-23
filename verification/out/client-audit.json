@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-10-23T13:38:17.410Z",
+  "title": "client-audit",
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "failures": [],
+  "results": [
+    {
+      "id": "module.loader",
+      "description": "client uses the Harness ModuleLoader entry",
+      "ok": true,
+      "ms": 0,
+      "notes": "module id + react-only require"
+    },
+    {
+      "id": "slots.registration",
+      "description": "both sidebar entries share stable ids with their main panels",
+      "ok": true,
+      "ms": 1,
+      "notes": "remote-ssh(20) + remote-workspace(21) ↔ matching main keys"
+    },
+    {
+      "id": "rpc.contract",
+      "description": "client endpoints and bridge match the Host contract",
+      "ok": true,
+      "ms": 0,
+      "notes": "13 endpoints"
+    },
+    {
+      "id": "locale.parity",
+      "description": "zh/en locale dictionaries have identical keys",
+      "ok": true,
+      "ms": 0,
+      "notes": "217 keys in both dictionaries"
+    },
+    {
+      "id": "ux.open-confirm",
+      "description": "open path checks helper and asks before installing",
+      "ok": true,
+      "ms": 0,
+      "notes": "doctor preflight → confirm → installHelper → openHost(allowInstall)"
+    },
+    {
+      "id": "workspace.panel",
+      "description": "remote workspace panel scans hosts and opens a session deep link",
+      "ok": true,
+      "ms": 0,
+      "notes": "scan → group by host/workspace → openHost(sessionId) → poll snapshot → openUrl → window.open"
+    },
+    {
+      "id": "ux.advanced-fields",
+      "description": "advanced HostView fields round-trip through the form",
+      "ok": true,
+      "ms": 1,
+      "notes": "10 advanced fields + advancedKnown"
+    },
+    {
+      "id": "security.client",
+      "description": "no direct fetch, HTML injection, or token logging",
+      "ok": true,
+      "ms": 0,
+      "notes": "rpc-only, no DOM injection, no client persistence"
+    },
+    {
+      "id": "hygiene.legacy",
+      "description": "old settings-section/tool-era client code is gone",
+      "ok": true,
+      "ms": 0,
+      "notes": "no legacy symbols"
+    },
+    {
+      "id": "theme.tokens",
+      "description": "both panels use Harness theme variables and scoped prefixes",
+      "ok": true,
+      "ms": 0,
+      "notes": "169 theme token uses, 2 prefixes"
+    }
+  ]
+}

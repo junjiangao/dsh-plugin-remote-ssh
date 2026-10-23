@@ -1,8 +1,9 @@
 {
   "name": "@junjiangao/dsh-plugin-remote-ssh",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Model-facing SSH tools for the DeepSeek Harness: run commands and transfer files on remote hosts through the system OpenSSH client.",
+  "license": "MIT",
+  "description": "SSH host manager for the DeepSeek Harness Web UI: browse ~/.ssh/config, manage hosts, open each one in an independent official dsh-ssh remote-execution window, or mount remote workspaces into the current window.",
   "type": "module",
   "repository": {
     "type": "git",
@@ -12,6 +13,7 @@
   "icon": "./icon.svg",
   "exports": {
     ".": "./index.js",
+    "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg",
     "./cordis.patch.yml": "./cordis.patch.yml",
@@ -20,6 +22,7 @@
   "files": [
     "index.js",
     "lib/*.js",
+    "client.js",
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
@@ -31,15 +34,38 @@
     "dsh",
     "deepseek-harness",
     "ssh",
-    "remote"
+    "ssh-config",
+    "remote",
+    "remote-development"
   ],
+  "engines": {
+    "dsh": ">=0.2.1-rc.2 <0.3.0",
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/unit/*.test.mjs tests/integration/*.test.mjs",
+    "verify:static": "node verification/static-check.mjs",
+    "verify:client": "node verification/client-audit.mjs",
+    "verify:docs": "node verification/docs-audit.mjs",
+    "verify:e2e": "node verification/e2e.mjs"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-api-workspace-controller",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-tools": "*",
-    "@deepseek-ai/schemastery": "*"
+    "@deepseek-ai/schemastery": ">=3.18.4 <3.19.0"
   }
 }

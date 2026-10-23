@@ -1,21 +1,21 @@
-<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Remote SSH">
+<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Remote SSH">
   <title>Remote SSH</title>
   <defs>
-    <linearGradient id="remote-ssh-link" x1="6" y1="26" x2="30" y2="10" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#41E1AC"/>
-      <stop offset="1" stop-color="#5547D2"/>
+    <linearGradient id="remote-ssh-link" x1="3" y1="19" x2="21" y2="5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C8DFF"/>
+      <stop offset="1" stop-color="#22C79B"/>
     </linearGradient>
   </defs>
-  <!-- Local terminal window -->
-  <rect x="2" y="10" width="16" height="16" rx="3" stroke="#2F2295" stroke-width="2"/>
-  <path d="M6.2 15.2l3 3-3 3" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M11.4 21.2h3.4" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round"/>
-  <!-- Encrypted link to the remote side -->
-  <path d="M19.4 18h3.2" stroke="#2F2295" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 2.4"/>
-  <path d="M22.6 15.2l2.8 2.8-2.8 2.8" stroke="url(#remote-ssh-link)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Local terminal -->
+  <rect x="2.75" y="4.75" width="9.5" height="8.5" rx="1.75" stroke="url(#remote-ssh-link)" stroke-width="1.6"/>
+  <path d="M5.5 8l1.75 1.75L5.5 11.5" stroke="url(#remote-ssh-link)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.5 11.5h2" stroke="url(#remote-ssh-link)" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Encrypted link -->
+  <path d="M12.4 9h2.2" stroke="#4C8DFF" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.2 1.8"/>
+  <path d="M14.6 6.9l2.1 2.1-2.1 2.1" stroke="url(#remote-ssh-link)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Remote host stack -->
-  <rect x="26" y="10.5" width="8" height="6" rx="2" stroke="#2F2295" stroke-width="2"/>
-  <rect x="26" y="19.5" width="8" height="6" rx="2" stroke="#2F2295" stroke-width="2"/>
-  <circle cx="28.8" cy="13.5" r="1.1" fill="#41E1AC"/>
-  <circle cx="28.8" cy="22.5" r="1.1" fill="#41E1AC"/>
+  <rect x="17" y="4.9" width="4.4" height="3.4" rx="1.1" stroke="#4C8DFF" stroke-width="1.5"/>
+  <rect x="17" y="10.1" width="4.4" height="3.4" rx="1.1" stroke="#4C8DFF" stroke-width="1.5"/>
+  <circle cx="19.2" cy="6.6" r="0.9" fill="#22C79B"/>
+  <circle cx="19.2" cy="11.8" r="0.9" fill="#22C79B"/>
 </svg>

@@ -1,0 +1,12 @@
+PASS  module.loader  client uses the Harness ModuleLoader entry  module id + react-only require
+PASS  slots.registration  both sidebar entries share stable ids with their main panels  remote-ssh(20) + remote-workspace(21) ↔ matching main keys
+PASS  rpc.contract  client endpoints and bridge match the Host contract  13 endpoints
+PASS  locale.parity  zh/en locale dictionaries have identical keys  217 keys in both dictionaries
+PASS  ux.open-confirm  open path checks helper and asks before installing  doctor preflight → confirm → installHelper → openHost(allowInstall)
+PASS  workspace.panel  remote workspace panel scans hosts and opens a session deep link  scan → group by host/workspace → openHost(sessionId) → poll snapshot → openUrl → window.open
+PASS  ux.advanced-fields  advanced HostView fields round-trip through the form  10 advanced fields + advancedKnown
+PASS  security.client  no direct fetch, HTML injection, or token logging  rpc-only, no DOM injection, no client persistence
+PASS  hygiene.legacy  old settings-section/tool-era client code is gone  no legacy symbols
+PASS  theme.tokens  both panels use Harness theme variables and scoped prefixes  169 theme token uses, 2 prefixes
+
+10 passed, 0 failed, 10 total

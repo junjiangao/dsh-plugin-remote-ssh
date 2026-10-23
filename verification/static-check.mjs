@@ -1,351 +1,148 @@
 #!/usr/bin/env node
 /**
- * STATIC verification of the @junjiangao/dsh-plugin-remote-ssh bundle
- * (task-3 checks 1 & 2, re-run for task-5 after the package rename).
+ * Static verification of the remote-SSH bundle: manifest, module shape,
+ * syntax, bundle patch, Config coverage and repository hygiene.
  *
  *   node verification/static-check.mjs [--json verification/out/static-check.json]
  *
- * Read-only: inspects the bundle, never modifies it.
+ * Read-only.
  */
-
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { register } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
-import { createSuite, assert, assertEqual, fail } from './lib/checks.mjs';
+import strict from 'node:assert/strict';
+import { createSuite, assert, assertEqual } from './lib/checks.mjs';
 import { repoRoot, dshRequire } from './lib/harness.mjs';
 
-// Map the two installation-scope bare specifiers onto the real harness modules
-// so the plugin can be imported and its definitions validated by real code.
-register('./resolution/loader.mjs', import.meta.url);
-
-const yaml = dshRequire('js-yaml');
-const { SaxesParser } = dshRequire('saxes');
-
-const EXPECTED_NAME = '@junjiangao/dsh-plugin-remote-ssh';
-/**
- * The pre-rename package name, assembled from parts so that this file itself
- * does not contain the literal: task-5 requires
- * `grep -rn "<legacy-name>" . --exclude-dir=.git` to match nothing repo-wide.
- */
-const LEGACY_NAME = '@' + 'local/dsh-plugin-remote-ssh';
-
-const FROZEN_TOOLS = {
-  ssh_hosts: { check: { type: 'boolean' } },
-  ssh_exec: {
-    host: { type: 'string', required: true },
-    command: { type: 'string', required: true },
-    cwd: { type: 'string' },
-    env: { type: 'object' },
-    timeoutMs: { type: 'number' },
-    pty: { type: 'boolean' },
-    stdin: { type: 'string' },
-  },
-  ssh_upload: {
-    host: { type: 'string', required: true },
-    localPath: { type: 'string', required: true },
-    remotePath: { type: 'string', required: true },
-    recursive: { type: 'boolean' },
-    timeoutMs: { type: 'number' },
-  },
-  ssh_download: {
-    host: { type: 'string', required: true },
-    remotePath: { type: 'string', required: true },
-    localPath: { type: 'string', required: true },
-    recursive: { type: 'boolean' },
-    timeoutMs: { type: 'number' },
-  },
-};
-
-/** Walk the *bundle* (excluding the verifier's own trees and VCS metadata). */
-function walk(dir, predicate, out = []) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name === '.git') continue;
-    if (dir === repoRoot && (entry.name === 'verification' || entry.name === 'tests')) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full, predicate, out);
-    else if (predicate(full)) out.push(full);
-  }
-  return out;
-}
-
 const suite = createSuite('static-check');
+const read = (relative) => readFileSync(path.join(repoRoot, relative), 'utf8');
+const json = (relative) => JSON.parse(read(relative));
 
-// ---------------------------------------------------------------- package.json
-let pkg = null;
-await suite.check('S1-package-json', 'package.json parses and declares the frozen manifest fields', () => {
-  const file = path.join(repoRoot, 'package.json');
-  assert(existsSync(file), `package.json missing at ${file}`);
-  pkg = JSON.parse(readFileSync(file, 'utf8'));
-  assertEqual(pkg.name, EXPECTED_NAME, 'package.json name');
-  assertEqual(pkg.version, '1.0.0', 'package.json version');
-  assertEqual(pkg.private, true, 'package.json private');
-  assertEqual(pkg.type, 'module', 'package.json type');
-  const main = pkg.main ?? pkg.exports?.['.'];
-  assert(main, 'package.json must declare main or exports["."]');
-  assertEqual(pkg.icon, './icon.svg', 'package.json icon');
-  assertEqual(pkg.dsh?.bundle?.patch, './cordis.patch.yml', 'package.json dsh.bundle.patch');
-  for (const key of ['.', './locale/*.json', './icon', './package.json']) {
-    assert(pkg.exports?.[key], `package.json exports is missing "${key}"`);
-  }
-  assert(Array.isArray(pkg.files) && pkg.files.length > 0, 'package.json files must be a non-empty array');
-  return `name=${pkg.name} version=${pkg.version} files=${pkg.files.length} exports=${Object.keys(pkg.exports).join(',')}`;
+const CONFIG_KEYS = [
+	'sshExecutable', 'sshConfigPath', 'dataDir', 'profileName', 'sshPackageVersion',
+	'helperPackage', 'helperRoot', 'npmRegistry', 'remoteNode', 'connectTimeoutMs',
+	'commandTimeoutMs', 'installTimeoutMs', 'openTimeoutMs', 'inheritDesktopSettings',
+	'mirrorWorkspace', 'permissionMode',
+];
+const LEGACY = ['ssh_exec', 'ssh_upload', 'ssh_download', 'ssh_hosts', '@deepseek-ai/dsh-tools', 'settings.section'];
+
+await suite.check('pkg.identity', 'package name, version and engines', () => {
+	const pkg = json('package.json');
+	assertEqual(pkg.name, '@junjiangao/dsh-plugin-remote-ssh', 'name');
+	strict.match(pkg.version, /^\d+\.\d+\.\d+$/);
+	strict.equal(pkg.type, 'module');
+	strict.equal(pkg.engines.node, '^22.19.0 || >=24.0.0');
+	strict.match(pkg.engines.dsh, /0\.2\.1-rc\.2/);
+	return `${pkg.name}@${pkg.version}`;
 });
 
-await suite.check('S2-no-dependencies', 'package.json declares NO dependencies; only installation-scope peerDependencies', () => {
-  assert(pkg, 'package.json was not parsed');
-  const deps = Object.keys(pkg.dependencies ?? {});
-  const optional = Object.keys(pkg.optionalDependencies ?? {});
-  const peers = Object.keys(pkg.peerDependencies ?? {});
-  assert(deps.length === 0, `dependencies must be empty, found: ${deps.join(', ')}`);
-  assert(optional.length === 0, `optionalDependencies must be empty, found: ${optional.join(', ')}`);
-  // The bundle is linked from a workspace path. The harness only routes
-  // installation-scope packages for a linked bundle when the importing
-  // package.json declares them as peerDependencies (Lead-confirmed after the
-  // first install_bundle failed activation). So peerDependencies is required
-  // and must contain exactly the two installation-scope specifiers.
-  const allowedPeers = ['@deepseek-ai/dsh-tools', '@deepseek-ai/schemastery'];
-  const unexpected = peers.filter((p) => !allowedPeers.includes(p));
-  assert(unexpected.length === 0, `unexpected peerDependencies: ${unexpected.join(', ')}`);
-  const missing = allowedPeers.filter((p) => !peers.includes(p));
-  assert(missing.length === 0,
-    `peerDependencies must declare the installation-scope packages for linked-bundle resolution; missing: ${missing.join(', ')}`);
-  return `dependencies={} optionalDependencies={} peerDependencies=${JSON.stringify(pkg.peerDependencies)}`;
+await suite.check('pkg.bundle', 'dsh.bundle patch and client entry are declared', () => {
+	const pkg = json('package.json');
+	assertEqual(pkg.dsh.bundle.patch, './cordis.patch.yml');
+	strict.equal(pkg.dsh.client.platform, 'web');
+	assert(Array.isArray(pkg.dsh.client.inject) && pkg.dsh.client.inject.length >= 4);
+	assert(existsSync(path.join(repoRoot, 'cordis.patch.yml')));
+	assert(existsSync(path.join(repoRoot, 'client.js')));
+	for (const file of ['index.js', 'client.js', 'cordis.patch.yml', 'icon.svg', 'README.md', 'README.en.md']) {
+		assert(pkg.files.includes(file), `${file} missing from files[]`);
+	}
+	return `${pkg.dsh.client.inject.length} client packages in inject`;
 });
 
-await suite.check('S3-referenced-files-exist', 'every file referenced by main/exports/files exists on disk', () => {
-  assert(pkg, 'package.json was not parsed');
-  const missing = [];
-  const referenced = new Set();
-  const addRef = (ref) => {
-    if (typeof ref !== 'string' || ref.includes('*')) return;
-    referenced.add(ref.replace(/^\.\//, ''));
-  };
-  addRef(typeof pkg.main === 'string' ? pkg.main : undefined);
-  for (const value of Object.values(pkg.exports ?? {})) {
-    if (typeof value === 'string') addRef(value);
-    else if (value && typeof value === 'object') for (const v of Object.values(value)) addRef(v);
-  }
-  for (const entry of pkg.files ?? []) addRef(entry);
-  for (const ref of referenced) {
-    if (!existsSync(path.join(repoRoot, ref))) missing.push(ref);
-  }
-  assert(missing.length === 0, `referenced but missing: ${missing.join(', ')}`);
-  return `${referenced.size} referenced paths exist`;
+await suite.check('bundle.patch', 'bundle patch disables the three base providers and inserts one remote-ssh row', () => {
+	const yaml = dshRequire('js-yaml');
+	const parsed = yaml.load(read('cordis.patch.yml'));
+	assert(Array.isArray(parsed) && parsed.length === 4);
+	const disabled = parsed.filter((row) => row.disabled === true).map((row) => row.id);
+	strict.deepEqual(disabled, ['subprocess', 'sandbox', 'fs-sandbox']);
+	const inserts = parsed.filter((row) => Array.isArray(row.insert));
+	assert(inserts.length === 1);
+	const rows = inserts[0].insert;
+	assert(Array.isArray(rows) && rows.length === 1);
+	assertEqual(rows[0].id, 'remote-ssh');
+	assertEqual(rows[0].name, '@junjiangao/dsh-plugin-remote-ssh');
+	strict.deepEqual(rows[0].config, {});
+	return 'disable subprocess/sandbox/fs-sandbox + insert remote-ssh';
 });
 
-await suite.check('S4-cordis-patch', 'cordis.patch.yml parses as YAML and inserts exactly one remote-ssh row', () => {
-  const file = path.join(repoRoot, 'cordis.patch.yml');
-  assert(existsSync(file), 'cordis.patch.yml missing');
-  const doc = yaml.load(readFileSync(file, 'utf8'));
-  assert(Array.isArray(doc), `cordis.patch.yml must be a top-level YAML array, got ${typeof doc}`);
-  assertEqual(doc.length, 1, 'cordis.patch.yml top-level array length');
-  const insert = doc[0]?.insert;
-  assert(Array.isArray(insert), 'first patch row must be an `insert:` array');
-  assertEqual(insert.length, 1, 'insert array length');
-  const row = insert[0];
-  assertEqual(row.id, 'remote-ssh', 'insert row id');
-  assertEqual(row.name, EXPECTED_NAME, 'insert row name');
-  assert(row.config !== undefined, 'insert row should carry a config key');
-  assertEqual(Object.keys(row.config ?? {}).length, 0, 'insert config should be empty ({})');
-  return `insert: id=${row.id} name=${row.name} config=${JSON.stringify(row.config)}`;
+await suite.check('source.syntax', 'every JavaScript module parses', () => {
+	const files = ['index.js', 'client.js', ...readdirSync(path.join(repoRoot, 'lib')).filter((f) => f.endsWith('.js')).map((f) => `lib/${f}`)];
+	for (const file of files) {
+		const result = spawnSync(process.execPath, ['--check', path.join(repoRoot, file)], { encoding: 'utf8' });
+		if (result.status !== 0) throw new Error(`${file}: ${result.stderr.trim()}`);
+	}
+	return `${files.length} modules`;
 });
 
-// -------------------------------------------------------------------- locales
-let locales = null;
-await suite.check('S5-locales', 'locale/en.json and locale/zh.json parse and carry real meta copy', () => {
-  locales = {};
-  for (const lang of ['en', 'zh']) {
-    const file = path.join(repoRoot, 'locale', `${lang}.json`);
-    assert(existsSync(file), `locale/${lang}.json missing`);
-    const doc = JSON.parse(readFileSync(file, 'utf8'));
-    const title = doc?.meta?.title;
-    const description = doc?.meta?.description;
-    assert(typeof title === 'string' && title.trim().length > 0, `locale/${lang}.json meta.title must be a non-empty string`);
-    assert(typeof description === 'string' && description.trim().length > 0, `locale/${lang}.json meta.description must be a non-empty string`);
-    for (const [field, value] of [['title', title], ['description', description]]) {
-      assert(!/todo|lorem ipsum|placeholder|xxx|{{|}}/i.test(value), `locale/${lang}.json meta.${field} looks like a template placeholder: ${JSON.stringify(value)}`);
-    }
-    locales[lang] = { title, description };
-  }
-  assert(locales.en.title !== locales.zh.title, 'en/zh meta.title must differ (localized copy, not a copy-paste)');
-  assert(locales.en.description !== locales.zh.description, 'en/zh meta.description must differ');
-  assert(/[\u4e00-\u9fff]/.test(locales.zh.title + locales.zh.description), 'zh locale must contain Chinese text');
-  assert(!/[\u4e00-\u9fff]/.test(locales.en.title), 'en locale title should not be Chinese');
-  return `en="${locales.en.title}" zh="${locales.zh.title}"`;
+await suite.check('index.shape', 'Host entry exports name/inject/Config/apply and no tools', () => {
+	const text = read('index.js');
+	assert(/export const name = 'remote-ssh'/.test(text), 'name export');
+	assert(/export const inject = \['connection'\]/.test(text), 'inject export');
+	assert(/export \{ Config \}/.test(text), 'Config export');
+	assert(/export async function apply\(/.test(text), 'apply export');
+	assert(!text.includes('ctx.tools'), 'must not register tools');
+	for (const legacy of LEGACY) assert(!text.includes(legacy), `legacy symbol ${legacy}`);
+	return 'connection-only Host plugin';
 });
 
-// ------------------------------------------------------------------- icon.svg
-await suite.check('S6-icon-svg', 'icon.svg is well-formed SVG < 256 KiB with a viewBox and no external references', () => {
-  const file = path.join(repoRoot, 'icon.svg');
-  assert(existsSync(file), 'icon.svg missing');
-  const size = statSync(file).size;
-  assert(size > 0, 'icon.svg is empty');
-  assert(size < 256 * 1024, `icon.svg is ${size} bytes, must be < 256 KiB`);
-  const text = readFileSync(file, 'utf8');
-  const errors = [];
-  const elements = [];
-  let root = null;
-  const parser = new SaxesParser({ xmlns: true });
-  parser.on('error', (error) => errors.push(error.message));
-  parser.on('opentag', (tag) => {
-    if (root === null) root = tag.name;
-    elements.push(tag.name);
-  });
-  parser.write(text).close();
-  assert(errors.length === 0, `icon.svg is not well-formed XML: ${errors.join('; ')}`);
-  assertEqual(root, 'svg', 'icon.svg root element');
-  assert(/viewBox\s*=/.test(text), 'icon.svg must declare a viewBox');
-  const external = [];
-  for (const match of text.matchAll(/\b(?:xlink:)?href\s*=\s*["']([^"']*)["']/gi)) {
-    const value = match[1].trim();
-    if (!value.startsWith('#')) external.push(`href=${value}`);
-  }
-  for (const match of text.matchAll(/\bsrc\s*=\s*["']([^"']*)["']/gi)) external.push(`src=${match[1]}`);
-  for (const match of text.matchAll(/url\(\s*["']?([^"')]+)/gi)) {
-    if (!match[1].startsWith('#')) external.push(`url(${match[1]})`);
-  }
-  assert(external.length === 0, `icon.svg has external references: ${external.join(', ')}`);
-  return `${size} bytes, root=<${root}>, ${elements.length} elements, viewBox present, 0 external refs`;
+await suite.check('config.keys', 'Config covers every documented key', () => {
+	const text = read('lib/config.js');
+	for (const key of CONFIG_KEYS) assert(new RegExp(`\\b${key}:`).test(text), `missing ${key}`);
+	assert(!text.includes('allowedHosts'), 'old allowlist must be gone');
+	return `${CONFIG_KEYS.length} keys`;
 });
 
-// ------------------------------------------------------------------- JS syntax
-const jsFiles = walk(repoRoot, (f) => f.endsWith('.js') || f.endsWith('.mjs'));
-await suite.check('S7-node-check', `every .js/.mjs file passes \`node --check\` (${jsFiles.length} files)`, () => {
-  assert(jsFiles.length > 0, 'no .js files found in the bundle');
-  const failures = [];
-  for (const file of jsFiles) {
-    const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
-    if (result.status !== 0) failures.push(`${path.relative(repoRoot, file)}: ${(result.stderr || '').trim().split('\n')[0]}`);
-  }
-  assert(failures.length === 0, `node --check failures:\n${failures.join('\n')}`);
-  return `${jsFiles.length} files checked, 0 syntax errors`;
+await suite.check('client.module', 'client module uses the Harness loader and only react', () => {
+	const text = read('client.js');
+	assert(/window\.__ModuleLoader__\.load\(\{/.test(text), 'ModuleLoader.load');
+	assert(/id: '@junjiangao\/dsh-plugin-remote-ssh'/.test(text), 'module id');
+	const requires = [...new Set([...text.matchAll(/require\(['"]([^'"]+)['"]\)/g)].map((m) => m[1]))];
+	strict.deepEqual(requires, ['react']);
+	assert(
+		text.includes("inject = ['connection', 'slots', 'locale', 'workspaces', 'uiWorkspace']"),
+		'client inject',
+	);
+	assert(!text.includes('document.cookie'));
+	return `requires ${requires.join(', ')}`;
 });
 
-// --------------------------------------------------------------- import audit
-await suite.check('S8-bare-imports', 'the only bare imports are @deepseek-ai/dsh-tools and @deepseek-ai/schemastery', () => {
-  const allowed = new Set(['@deepseek-ai/dsh-tools', '@deepseek-ai/schemastery']);
-  const found = new Map();
-  const bare = [];
-  for (const file of jsFiles) {
-    const text = readFileSync(file, 'utf8');
-    const specs = [
-      ...text.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g),
-      ...text.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g),
-      ...text.matchAll(/\bimport\s+['"]([^'"]+)['"]/g),
-    ].map((m) => m[1]);
-    for (const spec of specs) {
-      const isRelative = spec.startsWith('.') || spec.startsWith('/') || spec.startsWith('node:');
-      if (isRelative) continue;
-      bare.push(`${path.relative(repoRoot, file)} -> ${spec}`);
-      found.set(spec, (found.get(spec) ?? 0) + 1);
-    }
-  }
-  const unexpected = bare.filter((entry) => !allowed.has(entry.split(' -> ')[1]));
-  assert(unexpected.length === 0, `unexpected bare imports:\n${unexpected.join('\n')}`);
-  return bare.length === 0
-    ? 'no bare imports at all'
-    : [...found.entries()].map(([spec, n]) => `${spec} x${n}`).join(', ');
+await suite.check('locale.files', 'locale JSON files are valid', () => {
+	for (const file of ['locale/zh.json', 'locale/en.json']) {
+		const value = json(file);
+		assert(value.meta && typeof value.meta.title === 'string' && value.meta.title.length > 0);
+	}
+	return 'zh/en metadata';
 });
 
-// ------------------------------------------------------- harness contract probe
-await suite.check('S9-tool-definitions', 'the REAL harness defineTool accepts all four definitions with frozen params', async () => {
-  const { defineTool, assertSupportedJsonSchema } = await import('@deepseek-ai/dsh-tools');
-  const entry = path.join(repoRoot, 'index.js');
-  assert(existsSync(entry), 'index.js missing');
-  const mod = await import(`${entry}?static-check=${Date.now()}`);
-  assert(typeof mod.apply === 'function', 'index.js must export apply(ctx, config)');
-  assert(typeof mod.Config === 'function' || typeof mod.Config === 'object', 'index.js must export Config');
-  const captured = [];
-  const ctx = makeFakeCtx(captured);
-  const raw = {};
-  const config = typeof mod.Config === 'function' ? mod.Config(raw) : raw;
-  await mod.apply(ctx, config);
-  assert(captured.length >= 4, `apply() registered ${captured.length} tools, expected at least 4`);
-  const byName = new Map(captured.map((d) => [d.name, d]));
-  const problems = [];
-  for (const [name, params] of Object.entries(FROZEN_TOOLS)) {
-    const def = byName.get(name);
-    if (!def) {
-      problems.push(`tool "${name}" was not registered`);
-      continue;
-    }
-    if (typeof def.output?.render !== 'function') problems.push(`${name}: output.render is not a function`);
-    try {
-      assertSupportedJsonSchema(def.output?.schema);
-    } catch (error) {
-      problems.push(`${name}: output.schema rejected by harness: ${error.message}`);
-    }
-    for (const [param, spec] of Object.entries(params)) {
-      const declared = def.parameters?.properties?.[param];
-      if (!declared) {
-        problems.push(`${name}: parameter "${param}" is missing`);
-        continue;
-      }
-      if (declared.type !== spec.type) problems.push(`${name}.${param}: type ${declared.type} != ${spec.type}`);
-      if (Boolean(spec.required) !== (def.parameters.required ?? []).includes(param)) {
-        problems.push(`${name}.${param}: required=${(def.parameters.required ?? []).includes(param)} != ${Boolean(spec.required)}`);
-      }
-    }
-  }
-  assert(problems.length === 0, problems.join('\n'));
-  return `${captured.length} tools registered: ${[...byName.keys()].sort().join(', ')}`;
+await suite.check('icon.svg', 'icon is a self-contained SVG', () => {
+	const text = read('icon.svg').trim();
+	assert(text.startsWith('<svg') && text.endsWith('</svg>'));
+	assert(/viewBox="0 0 24 24"/.test(text));
+	assert(!/(?:href|src)="https?:\/\//.test(text), 'no remote references');
+	return '24x24 inline SVG';
 });
 
-// ------------------------------------------------------------- rename hygiene
-await suite.check('S10-no-legacy-name', 'no stale pre-rename package reference remains anywhere in the repo', () => {
-  const skip = new Set(['.git', 'node_modules']);
-  const hits = [];
-  const visit = (dir) => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      if (skip.has(entry.name)) continue;
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        visit(full);
-        continue;
-      }
-      if (!entry.isFile()) continue;
-      let text;
-      try {
-        text = readFileSync(full, 'utf8');
-      } catch {
-        continue; // binary or unreadable
-      }
-      if (text.includes(LEGACY_NAME)) hits.push(path.relative(repoRoot, full));
-    }
-  };
-  visit(repoRoot);
-  assert(hits.length === 0,
-    `stale pre-rename reference found in: ${hits.join(', ')} (expected: the rename is complete)`);
-  return `0 files contain the pre-rename name (scanned the whole repo except .git/ and node_modules/)`;
+await suite.check('hygiene.legacy', 'no legacy tool-era source files or symbols', () => {
+	for (const file of ['lib/tools.js', 'lib/hosts.js', 'lib/shell.js']) assert(!existsSync(path.join(repoRoot, file)), `${file} must be deleted`);
+	const packageText = read('package.json');
+	for (const legacy of ['ssh_exec', 'ssh_upload', 'ssh_download', 'dsh-tools']) assert(!packageText.includes(legacy), legacy);
+	return 'legacy files and strings absent';
 });
 
-function makeFakeCtx(captured) {
-  return {
-    tools: {
-      register(definition) {
-        captured.push(definition);
-        return () => {};
-      },
-    },
-    on() {},
-    effect() {},
-    get() {
-      return undefined;
-    },
-  };
-}
+await suite.check('docs.exist', 'documentation and verification entry points exist', () => {
+	for (const file of ['README.md', 'README.en.md', 'docs/architecture.md', 'verification/static-check.mjs', 'verification/client-audit.mjs', 'verification/docs-audit.mjs', 'verification/e2e.mjs']) {
+		assert(existsSync(path.join(repoRoot, file)), `${file} missing`);
+	}
+	return 'README + architecture + 4 verification scripts';
+});
 
 const summary = suite.summary();
-
-const jsonFlag = process.argv.indexOf('--json');
-if (jsonFlag !== -1 && process.argv[jsonFlag + 1]) {
-  const { writeFileSync, mkdirSync } = await import('node:fs');
-  const out = path.resolve(process.argv[jsonFlag + 1]);
-  mkdirSync(path.dirname(out), { recursive: true });
-  writeFileSync(out, `${JSON.stringify({ suite: 'static-check', results: suite.results, summary }, null, 2)}\n`);
-  process.stdout.write(`wrote ${out}\n`);
-}
-
-process.exit(summary.failed === 0 ? 0 : 1);
+const outJson = path.join(repoRoot, 'verification/out/static-check.json');
+const outTxt = path.join(repoRoot, 'verification/out/static-check.txt');
+const payload = { generatedAt: new Date().toISOString(), title: suite.title, ...summary, results: suite.results };
+const { mkdirSync, writeFileSync } = await import('node:fs');
+mkdirSync(path.dirname(outJson), { recursive: true });
+writeFileSync(outJson, `${JSON.stringify(payload, null, 2)}\n`);
+writeFileSync(outTxt, `${suite.results.map((r) => `${r.ok ? 'PASS' : 'FAIL'}  ${r.id}  ${r.description}  ${r.notes.split('\n')[0]}`).join('\n')}\n\n${summary.passed} passed, ${summary.failed} failed, ${summary.total} total\n`);
+process.exitCode = summary.failed === 0 ? 0 : 1;
